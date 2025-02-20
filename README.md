@@ -1,4 +1,4 @@
-# esof project 2LEIC17T2
+# ESOF 2024/2025 2LEIC17T2
 
 ## Project Idea
 
@@ -6,13 +6,13 @@ An app that enables users to identify, report, and view accessibility issues in 
 
 ## Features
 
-- report issues
-- view issues
-- categorize issues
-- search and filter issues
-- user profile
+- Report issues
+- View issues
+- Categorize issues
+- Search and filter issues
+- User profile
 
 ## Assumptions and Dependencies
 
-- data comes from user input
-- map api
+- Data comes from user input
+- Map api
