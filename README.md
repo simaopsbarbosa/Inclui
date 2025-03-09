@@ -88,6 +88,16 @@ Take a look at the following links to learn some techniques:
 
 ### User Stories
 
+// TODO - acabar user stories 
+
+- list view (filter) (unregistered)
+- report (registered and validated)
+- map view (unregistered)
+- verifiable user profiles (unregistered)
+- specific place view (unregistered)
+- account register and login (unregistered)
+
+
 <!--
 In this section, you should describe all kinds of requirements for your module: functional and non-functional requirements.
 
