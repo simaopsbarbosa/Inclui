@@ -1,5 +1,9 @@
 # Inclui Development Report
 
+<p align="center" justify="center">
+  <img alt="Inclui" src="docs/images/logo/inclui-w.svg"/>
+</p>
+
 Welcome to the documentation pages of Inclui!
 
 This Software Development Report, tailored for LEIC-ES-2024-25, provides comprehensive details about Inclui, from high-level vision to low-level implementation decisions. It’s organised by the following activities.
