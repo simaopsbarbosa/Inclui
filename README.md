@@ -88,16 +88,12 @@ Take a look at the following links to learn some techniques:
 
 ### User Stories
 
-// TODO - acabar user stories 
-
-as a _, i want _ , so that _
-
-- list view (filter) (unregistered)
-- report (registered and validated)
-- map view (unregistered)
-- user profiles (unregistered)
-- validate user profiles (unvalidated)
-- specific place view (unregistered)
+- As a user, I want to search for places that accommodate specific accessibility requirements, so that I can get a list view of suitable locations.
+- As a validated user, I want to report an accessibility issue at a location, so that others are informed.
+- As a user, I want to search for a specific place, so that I can view it's accessibility issues.
+- As an unregistered user, I want to create an account and log in, so that I can filter results based on my accessibility needs.
+- As a user, I want to view accessibility issues in nearby places in a map view, so that I can identify unsuitable locations.
+- As an unvalidated user, I want to verify my profile, so that I can report accessibility issues.
 
 
 <!--
