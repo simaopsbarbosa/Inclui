@@ -29,11 +29,11 @@ Please contact us!
 
 Thank you!
 
-- team member name and email
-- team member name and email
-- team member name and email
-- team member name and email
-- team member name and email
+- Diana Magro (up202305465@up.pt),
+- Joana Carvalhal (up202306568@up.pt),
+- Martim Cadilhe (up202307833@up.pt),
+- Pedro Araújo (up202306606@up.pt),
+- Simão Barbosa (up202306609@up.pt)
 
 ---
 
@@ -98,7 +98,6 @@ as a _, i want _ , so that _
 - user profiles (unregistered)
 - validate user profiles (unvalidated)
 - specific place view (unregistered)
-- account register and login (unregistered)
 
 
 <!--
