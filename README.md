@@ -43,6 +43,8 @@ Business modeling in software development involves defining the product's vision
 
 ### Product Vision
 
+For individuals seeking inclusive and accessible places, who need to find establishments that embrace diversity, the "Inclui" project is a mobile application that allows users to rate establishments based on accessibility features, such as wheelchair ramps, Braille menus, and other inclusivity aspects, helping people find places that meet their needs. Unlike general review apps, our product focuses specifically on accessibility and inclusivity, ensuring users can easily identify welcoming and accommodating establishments.
+
 <!--
 Start by defining a clear and concise vision for your app, to help members of the team, contributors, and users into focusing their often disparate views into a concise, visual, and short textual form.
 
