@@ -90,10 +90,13 @@ Take a look at the following links to learn some techniques:
 
 // TODO - acabar user stories 
 
+as a _, i want _ , so that _
+
 - list view (filter) (unregistered)
 - report (registered and validated)
 - map view (unregistered)
-- verifiable user profiles (unregistered)
+- user profiles (unregistered)
+- validate user profiles (unvalidated)
 - specific place view (unregistered)
 - account register and login (unregistered)
 

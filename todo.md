@@ -1,5 +1,0 @@
-- [x] first flutter app
-- [] user stories
-- [] product vision on README
-- [] domain model on README (as img)
-- [] 
