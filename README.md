@@ -1,8 +1,12 @@
 # Inclui Development Report
 
+<br>
+
 <p align="center" justify="center">
-  <img alt="Inclui" src="docs/images/logo/inclui-w.svg"/>
+  <img width="300px" alt="Inclui" src="docs/images/logo/inclui-w.svg"/>
 </p>
+
+<br>
 
 Welcome to the documentation pages of Inclui!
 
