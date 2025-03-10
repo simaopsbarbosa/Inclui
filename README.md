@@ -130,15 +130,17 @@ At the end, it is good to add a rough indication of the value of the user story 
 
 ### Domain model
 
-<!--
-To better understand the context of the software system, it is useful to have a simple UML class diagram with all and only the key concepts (names, attributes) and relationships involved of the problem domain addressed by your app.
-Also provide a short textual description of each concept (domain class).
-
-Example:
- <p align="center" justify="center">
-  <img src="https://github.com/FEUP-LEIC-ES-2022-23/templates/blob/main/images/DomainModel.png"/>
+<p align="center" justify="center">
+  <img alt="Domain Model" src="docs/images/domainModel/domainModel.svg"/>
 </p>
--->
+
+- **User**: Represents an individual who can search for places, report accessibility issues, and manage their account.
+- **Place**: A physical location (e.g., restaurant, store) with accessibility-related information.
+- **AccessibilityIssue**: A reported problem at a place, such as missing ramps or Braille menus.
+- **Report**: A user-submitted record of an accessibility issue, including details.
+- **Search**: Allows users to find places based on accessibility features or reported issues.
+- **MapView**: Displays places and accessibility issues on a map for easy navigation.
+- **AccountManagement**: Handles user authentication, profile management, and validation.
 
 ## Architecture and Design
 
