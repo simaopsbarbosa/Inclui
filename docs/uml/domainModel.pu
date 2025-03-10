@@ -1,0 +1,66 @@
+@startuml domainModel
+
+
+class User {
+    +userId: String {unique}
+    +name: String
+    +email: String
+    +password: String
+    +validated: Boolean
+}
+
+class Place {
+    +placeId: String {unique}
+    +name: String
+    +location: String
+    +type: String
+}
+
+class AccessibilityIssue {
+    +issueId: String {unique}
+    +description: String
+    +severity: String
+    +reportedDate: Date
+}
+
+class Report {
+    +reportId: String {unique}
+    +reportDate: Date
+    +status: String
+}
+
+class MapView {
+}
+
+class Search {
+}
+
+class AccountManagement {
+}
+
+User "1" -- "*" Report : submits >
+User "1" -- "*" AccessibilityIssue : reports >
+User "1" -- "*" Place : filters >
+User "1" -- "1" AccountManagement : manages >
+
+Place "1" -- "*" AccessibilityIssue : has >
+Place "1" -- "*" Report : is referenced in >
+
+MapView "1" -- "*" Place : displays >
+Search "1" -- "*" Place : finds >
+Search "1" -- "*" AccessibilityIssue : finds >
+
+note right of User
+The user must be validated 
+before they can report 
+accessibility issues.
+end note
+
+note right of Place
+A place can have multiple 
+accessibility issues, but 
+each issue must be tied 
+to a specific place.
+end note
+
+@enduml
