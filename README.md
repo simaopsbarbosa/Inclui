@@ -8,9 +8,9 @@
 
 <br>
 
-Welcome to the documentation pages of Inclui!
+Welcome to the documentation pages of **Inclui**!
 
-This Software Development Report, tailored for LEIC-ES-2024-25, provides comprehensive details about Inclui, from high-level vision to low-level implementation decisions. It’s organised by the following activities.
+This Software Development Report, tailored for LEIC-ES-2024-25, provides comprehensive details about **Inclui**, from high-level vision to low-level implementation decisions. It’s organised by the following activities.
 
 - [Business modeling](#Business-Modelling)
   - [Product Vision](#Product-Vision)
@@ -51,7 +51,7 @@ Business modeling in software development involves defining the product's vision
 
 ### Product Vision
 
-For individuals seeking inclusive and accessible places, who need to find establishments that embrace diversity, "Inclui" is a mobile application that allows users to rate establishments based on accessibility features, such as wheelchair ramps, Braille menus, and other inclusivity aspects, helping people find places that meet their needs. Unlike general review apps that allow you to rate places based on your personal preferences, our product focuses specifically on accessibility, ensuring users can easily identify welcoming and accommodating establishments.
+For individuals seeking inclusive and accessible places, who need to find establishments that embrace diversity, **Inclui** is a mobile application that allows users to rate establishments based on accessibility features, such as wheelchair ramps, Braille menus, and other inclusivity aspects, helping people find places that meet their needs. Unlike general review apps that allow you to rate places based on your personal preferences, our product focuses specifically on accessibility, ensuring users can easily identify welcoming and accommodating establishments.
 
 <!--
 Start by defining a clear and concise vision for your app, to help members of the team, contributors, and users into focusing their often disparate views into a concise, visual, and short textual form.
