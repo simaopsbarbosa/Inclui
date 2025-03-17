@@ -175,7 +175,7 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 ### Physical architecture
 
 <p align="center" justify="center">
-  <img alt="Physical Architecture" src="docs/images/deployment.svg"/>
+  <img alt="Physical Architecture" src="docs/images/physicalArchitecture/deployment.svg"/>
 </p>
 
 <!--
