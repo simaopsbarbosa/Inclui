@@ -174,6 +174,10 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 
 ### Physical architecture
 
+<p align="center" justify="center">
+  <img alt="Physical Architecture" src="docs/images/deployment.svg"/>
+</p>
+
 <!--
 The goal of this subsection is to document the high-level physical structure of the software system (machines, connections, software components installed, and their dependencies) using UML deployment diagrams (Deployment View) or component diagrams (Implementation View), separate or integrated, showing the physical structure of the system.
 
