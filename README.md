@@ -3,7 +3,7 @@
 <br>
 
 <p align="center" justify="center">
-  <img width="300px" alt="Inclui" src="docs/images/logo/inclui-w.svg"/>
+  <img width="250px" alt="Inclui" src="docs/images/logo/inclui-w.svg"/>
 </p>
 
 <br>
