@@ -1,0 +1,2 @@
+C:/Users/simao/Developer/feup/inclui/src/inclui/android/app/.cxx/Debug/5b3g1z20/x86/CMakeFiles/edit_cache.dir
+C:/Users/simao/Developer/feup/inclui/src/inclui/android/app/.cxx/Debug/5b3g1z20/x86/CMakeFiles/rebuild_cache.dir
