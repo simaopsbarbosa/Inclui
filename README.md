@@ -188,7 +188,7 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 ### Physical architecture
 
 <p align="center" justify="center">
-  <img alt="Physical Architecture" src="docs/images/physicalArchitecture/deployment.svg"/>
+  <img alt="Physical Architecture" src="docs/images/physicalArchitecture/physicalModel.svg"/>
 </p>
 
 This deployment diagram illustrates the architecture of a Flutter and Dart based mobile application, distributed as the Inclui.apk file, deployed on an Android smartphone. It communicates with an authentication service to validate user credentials to ensure secure access to the application's features. Additionally, it features the Google Maps Host to provide real-time location data features, enhancing navigation and accessibility. The architecture is designed to be robust, scalable, and user-friendly.
