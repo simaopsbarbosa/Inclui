@@ -140,13 +140,12 @@ At the end, it is good to add a rough indication of the value of the user story 
   <img alt="Domain Model" src="docs/images/domainModel/domainModel.svg"/>
 </p>
 
-- **User**: Represents an individual who can search for places, report accessibility issues, and manage their account.
-- **Place**: A physical location (e.g., restaurant, store) with accessibility-related information.
-- **AccessibilityIssue**: A reported problem at a place, such as missing ramps or Braille menus.
-- **Report**: A user-submitted record of an accessibility issue, including details.
-- **Search**: Allows users to find places based on accessibility features or reported issues.
-- **MapView**: Displays places and accessibility issues on a map for easy navigation.
-- **AccountManagement**: Handles user authentication, profile management, and validation.
+- **User**: Represents an individual who can report accessibility issues for various places. A user can only report each place once, and they must be validated before submitting any reports.
+- **Place**: A physical location (e.g., restaurant, store) that can have multiple reports associated with it. Each place can have various accessibility issues reported by different users.
+- **AccessibilityIssue**: A predefined category of accessibility problem, such as missing wheelchair ramps or lack of Braille menus. Multiple places can share the same accessibility issue type, but each report can contain multiple instances of these issues.
+- **Report**: A user-submitted record documenting the accessibility issues found at a particular place. A report can include multiple accessibility issues and is tied to both a specific user and a specific place.
+
+
 
 ## Architecture and Design
 
