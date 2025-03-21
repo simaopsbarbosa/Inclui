@@ -6,7 +6,11 @@ node "Smartphone" {
     }
 }
 
-node "Firebase"
+node "Firebase"{
+    component "Firebase API"
+    database "Firebase DB"
+    database "Authentication DB"
+}
 
 node "Google Maps Host" {
     component "Google Maps API"
@@ -15,9 +19,11 @@ node "Google Maps Host" {
 }
 
 ' Connections
-"Inclui.apk\n(Flutter)" ..> "Firebase" : Uses
-"Inclui.apk\n(Flutter)" ..> "Google Maps API" : Calls
-"Google Maps API" ..> "Google Maps Logic" : Processes
-"Google Maps Logic" ..> "Google Maps DB" : Stores/Retrieves
+"Inclui.apk\n(Flutter)" ..> "Firebase API"
+"Inclui.apk\n(Flutter)" ..> "Google Maps API"
+"Google Maps API" ..> "Google Maps Logic"
+"Google Maps Logic" ..> "Google Maps DB"
+"Firebase API" ..> "Firebase DB"
+"Firebase API" ..> "Authentication DB"
 
 @enduml
