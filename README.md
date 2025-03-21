@@ -162,17 +162,19 @@ In this section you should start by briefly describing the components of the pro
 
 ### Logical architecture
 
-The Package Model below provides a high-level overview of the system's logical structure,  illustrating the key packages and their interactions.
+The Package Model below provides a high-level overview of the system's logical structure, illustrating the key packages and their interactions.
 
 <p align="center" justify="center">
   <img alt="Logical Architecture" src="docs/images/logicalArchitecture/logicalModel.svg"/>
 </p>
 
-- **User Interface**: Contains the application's primary screens, such as the HomePage, SearchPage, ReportPage, and LoginPage. The MapView is also included within the HomePage to display places and accessibility issues visually. The UI interacts with the Business Logic to process user actions and manage authentication through the Authentication & Authorization package.
-- **Business Logic**: Handles the core functionalities of the system, such as Search, Report, AccessibilityIssue, and Place management. It processes user inputs, retrieves relevant data, and ensures the correct execution of business rules. It also interacts with Integration services when external data is required.
-- **Data Management**: Responsible for storing and retrieving data. The DatabaseHandler manages database operations, while DataRepository ensures structured access to stored information. Business Logic depends on this package for data persistence and retrieval.
-- **Authentication & Authorization**: Manages user authentication and profile validation. AccountManagement ensures that only verified users can submit reports and access specific functionalities. It also interacts with Data Management to validate user credentials.
-- **Integration**: Facilitates communication with external services, such as ExternalAPI and LocationService. This package enables features like fetching location-based information, which is essential for MapView. Business Logic relies on this layer to perform external queries.
+- **Application**: The core of the system, containing three main packages: User Interface, Business Logic, and Data Management.
+  - **User Interface**: Contains the application's primary screens, such as the HomePage, SearchPage, ReportPage, and LoginPage. It also includes MapView, which is part of the HomePage and is used to visually display places and accessibility issues. The User Interface interacts with Business Logic to process user actions and with Authentication & Authorization to manage authentication.
+  - **Business Logic**: Handles the core functionalities of the system, such as Search, Report, AccessibilityIssue, and Place management. It processes user inputs, retrieves relevant data, ensures the correct execution of business rules, and communicates with external services such as Google Maps when additional data is required.
+  - **Data Management**: Responsible for data storage and retrieval. It contains DatabaseHandler, which manages database operations. The Business Logic layer depends on this package for data persistence and retrieval.
+- **External Programs**: A collection of external services that the application relies on. It contains two sub-packages: Google Maps e Firebase.
+  - **Firebase**: Provides authentication, authorization, and database management functionalities. It contains Authentication & Authorization, which manages user authentication, profile validation, and interaction with Data Management to validate user credentials. It also includes Database, responsible for storing application data.
+  - **Google Maps**: Provides mapping and location-based services. It contains GoogleMapsAPI, which allows the application to fetch location-based information and display places on the MapView. The Business Logic layer communicates with this API when necessary.
 
 <!--
 The purpose of this subsection is to document the high-level logical structure of the code (Logical View), using a UML diagram with logical packages, without the worry of allocating to components, processes or machines.
