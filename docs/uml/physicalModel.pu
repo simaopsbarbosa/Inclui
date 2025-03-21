@@ -1,0 +1,26 @@
+@startuml
+title Deployment Diagram
+
+node "Smartphone" {
+    frame "<<executionEnvironment>> Android" {
+        artifact "Inclui.apk"
+    }
+}
+
+node "Application" {
+    component "Flutter"
+}
+
+node "Google Maps Host" {
+    database "Locations"
+}
+
+
+node "Authentication"
+
+' Connections
+"Inclui.apk" ..> "Flutter" : Deployment
+"Flutter" ..> "Google Maps Host" : Uses
+"Flutter" ..> "Authentication"
+
+@enduml
