@@ -1,25 +1,23 @@
-@startuml PhysicalModel
+@startuml physicalModel
 
 node "Smartphone" {
     frame "<<executionEnvironment>> Android" {
-        artifact "Inclui.apk"
+        artifact "Inclui.apk\n(Flutter)"
     }
 }
 
-node "Application" {
-    component "Flutter"
-}
+node "Firebase"
 
 node "Google Maps Host" {
-    database "Locations"
+    component "Google Maps API"
+    component "Google Maps Logic"
+    database "Google Maps DB"
 }
 
-
-node "Authentication"
-
 ' Connections
-"Inclui.apk" ..> "Flutter" : Deployment
-"Flutter" ..> "Google Maps Host" : Uses
-"Flutter" ..> "Authentication"
+"Inclui.apk\n(Flutter)" ..> "Firebase" : Uses
+"Inclui.apk\n(Flutter)" ..> "Google Maps API" : Calls
+"Google Maps API" ..> "Google Maps Logic" : Processes
+"Google Maps Logic" ..> "Google Maps DB" : Stores/Retrieves
 
 @enduml
