@@ -1,8 +1,9 @@
 @startuml domainModel
 
+skinparam linetype polyline
+skinparam linetype ortho
 
 class User {
-    +userId: String {unique}
     +name: String
     +email: String
     +password: String
@@ -10,57 +11,41 @@ class User {
 }
 
 class Place {
-    +placeId: String {unique}
     +name: String
     +location: String
     +type: String
 }
 
-class AccessibilityIssue {
-    +issueId: String {unique}
-    +description: String
-    +severity: String
-    +reportedDate: Date
+enum AccessibilityIssue {
 }
 
 class Report {
-    +reportId: String {unique}
     +reportDate: Date
     +status: String
 }
 
-class MapView {
-}
+User "1" -- "*" Report
+Place "1" -- "*" Report
 
-class Search {
-}
-
-class AccountManagement {
-}
-
-User "1" -- "*" Report : submits >
-User "1" -- "*" AccessibilityIssue : reports >
-User "1" -- "*" Place : filters >
-User "1" -- "1" AccountManagement : manages >
-
-Place "1" -- "*" AccessibilityIssue : has >
-Place "1" -- "*" Report : is referenced in >
-
-MapView "1" -- "*" Place : displays >
-Search "1" -- "*" Place : finds >
-Search "1" -- "*" AccessibilityIssue : finds >
+Report "1" -- "*" AccessibilityIssue : contains >
 
 note right of User
-The user must be validated 
-before they can report 
-accessibility issues.
+A user must be validated before 
+they can report accessibility issues.
+A user can only report each place once.
 end note
 
 note right of Place
-A place can have multiple 
-accessibility issues, but 
-each issue must be tied 
-to a specific place.
+A place can have 
+multiple reports, 
+but each report is 
+tied to a specific user.
+end note
+
+note right of AccessibilityIssue
+A report can contain
+multiple predefined 
+accessibility issues.
 end note
 
 @enduml
