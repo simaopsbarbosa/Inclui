@@ -1,0 +1,43 @@
+@startuml
+
+package "Application" {
+  package "User Interface" {
+    [HomePage] 
+    [SearchPage]
+    [ReportPage]
+    [LoginPage]
+    [MapView]
+  }
+
+  package "Business Logic" {
+    [Search]
+    [Report]
+    [AccessibilityIssue]
+    [Place]
+  }
+
+  package "Data Management" {
+    [DatabaseHandler]
+  }
+}
+
+package "External Programs" {
+  package "Firebase" {
+    [Authentication & Authorization]
+    [Database]
+  }
+
+  package "Google Maps" {
+    [GoogleMapsAPI]
+  }
+}
+
+"User Interface" ..> "Business Logic" : "Interacts with logic"
+"Business Logic" ..> "Data Management" : "Accesses data"
+"User Interface" ..> "Authentication & Authorization" : "Manages authentication"
+"Authentication & Authorization" ..> "Data Management" : "Validates user data"
+"Business Logic" ..> "Google Maps" : "Communicates with external services"
+
+"HomePage" ..> "MapView" : "Displays map"
+
+@enduml
