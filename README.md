@@ -101,9 +101,11 @@ Take a look at the following links to learn some techniques:
 - As a user, I want to search for places that accommodate specific accessibility requirements, so that I can get a list view of suitable locations.
 - As a validated user, I want to report an accessibility issue at a location, so that others are informed.
 - As a user, I want to search for a specific place, so that I can view it's accessibility issues.
+- As a registered user, I want to access my profile page, so that I can view and update my preferences.
 - As an unregistered user, I want to create an account and log in, so that I can filter results based on my accessibility needs.
 - As a user, I want to view accessibility issues in nearby places in a map view, so that I can identify unsuitable locations.
 - As an unvalidated user, I want to verify my profile, so that I can report accessibility issues.
+- As a verified user, I want to access my review history so that I can view past reviews and delete outdated ones.
 
 
 <!--
