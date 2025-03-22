@@ -1,0 +1,29 @@
+@startuml physicalModel
+title Deployment Diagram
+node "Smartphone" {
+    frame "<<executionEnvironment>> Android" {
+        artifact "Inclui.apk\n(Flutter)"
+    }
+}
+
+node "Firebase"{
+    component "Firebase API"
+    database "Firebase DB"
+    database "Authentication DB"
+}
+
+node "Google Maps Host" {
+    component "Google Maps API"
+    component "Google Maps Logic"
+    database "Google Maps DB"
+}
+
+' Connections
+"Inclui.apk\n(Flutter)" ..> "Firebase API"
+"Inclui.apk\n(Flutter)" ..> "Google Maps API"
+"Google Maps API" ..> "Google Maps Logic"
+"Google Maps Logic" ..> "Google Maps DB"
+"Firebase API" ..> "Firebase DB"
+"Firebase API" ..> "Authentication DB"
+
+@enduml
