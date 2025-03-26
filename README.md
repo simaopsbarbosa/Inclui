@@ -207,9 +207,9 @@ Example of _UML deployment diagram_ showing a _deployment view_ of the Eletronic
 
 ### Vertical prototype
 
-To validate our technological choices, we developed a vertical prototype integrating `Firebase` and location services.  
+To validate our technological choices, we developed a vertical prototype integrating Firebase and location services.  
 
-For data management, we set up a `Firebase Realtime Database`, allowing the app to store, display, and clear entries dynamically. Authentication was implemented using `Firebase Auth`, enabling user sign-in, account creation, and session management with error handling. Additionally, location services were integrated using the `Geolocator` package, ensuring proper permission handling and displaying the user’s coordinates within the app.  
+For data management, we set up a [Firebase Realtime Database](https://firebase.google.com/docs/database), allowing the app to store, display, and clear entries dynamically. Authentication was implemented using [Firebase Auth](https://firebase.google.com/docs/auth), enabling user sign-in, account creation, and session management with error handling. Additionally, location services were integrated using the [Geolocator](https://pub.dev/packages/geolocator) package, ensuring proper permission handling and displaying the user’s coordinates within the app.  
 
 The following video demonstrates these features in action.
 
