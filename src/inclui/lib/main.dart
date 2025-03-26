@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'firebase_options.dart';
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -29,6 +39,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+
+  Widget _getPage(int index) {
+    switch (index) {
+      case 0:
+        return HomePage();
+      case 1:
+        return SearchPage();
+      case 2:
+        return ReportPage();
+      case 3:
+        return ProfilePage();
+      default:
+        return HomePage();
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -66,15 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: Center(
-        child: Text(
-          'Selected Tab: $_selectedIndex',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ),
+      body: _getPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -103,6 +120,90 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Profile',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.blueAccent,
+      child: Center(
+        child: Text(
+          'Home Page Content',
+          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
+class SearchPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.greenAccent,
+      child: Center(
+        child: Text(
+          'Search Page Content',
+          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
+class ReportPage extends StatelessWidget {
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+
+  void _logReport() {
+    final timestamp = DateTime.now().toString();
+    _database.child('reports').push().set({'timestamp': timestamp});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.orangeAccent,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Report Page Content',
+              style:
+                  GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _logReport,
+              child: Text('Add Report'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                textStyle: GoogleFonts.inter(
+                    fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.purpleAccent,
+      child: Center(
+        child: Text(
+          'Profile Page Content',
+          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
