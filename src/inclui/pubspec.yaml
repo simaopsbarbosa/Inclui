@@ -13,7 +13,6 @@ dependencies:
   firebase_database: ^11.3.4
   flutter:
     sdk: flutter
-  flutter_dotenv: ^5.2.1
   google_fonts: ^6.2.1
 
 dev_dependencies:
