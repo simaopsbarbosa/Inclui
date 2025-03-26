@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -54,7 +55,18 @@ class _LoginPageState extends State<LoginPage> {
     User? user = _auth.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Auth Page')),
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(
+          'Authentication',
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Theme.of(context).primaryColor,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Center(
@@ -62,11 +74,35 @@ class _LoginPageState extends State<LoginPage> {
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Logged in as: ${user.email}'),
+                    Text(
+                      'Logged in as: ',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    Text(
+                      '${user.email}',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _signOut,
-                      child: Text('Logout'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                      ),
+                      child: Text(
+                        'Logout',
+                        style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
+                      ),
                     ),
                   ],
                 )
@@ -75,30 +111,55 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     TextField(
                       controller: _emailController,
-                      decoration: InputDecoration(labelText: 'Email'),
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        labelStyle: GoogleFonts.inter(fontSize: 14),
+                      ),
                       keyboardType: TextInputType.emailAddress,
                     ),
                     TextField(
                       controller: _passwordController,
-                      decoration: InputDecoration(labelText: 'Password'),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: GoogleFonts.inter(fontSize: 14),
+                      ),
                       obscureText: true,
                     ),
                     SizedBox(height: 16),
                     if (_errorMessage != null)
                       Text(
                         _errorMessage!,
-                        style: TextStyle(fontSize: 12, color: Colors.red),
+                        style:
+                            GoogleFonts.inter(fontSize: 12, color: Colors.red),
                       ),
                     SizedBox(height: 16),
                     Column(
                       children: [
                         ElevatedButton(
                           onPressed: _signIn,
-                          child: Text('Login'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          ),
+                          child: Text(
+                            'Login',
+                            style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                          ),
                         ),
                         ElevatedButton(
                           onPressed: _register,
-                          child: Text('Register'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                          ),
+                          child: Text(
+                            'Register',
+                            style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                          ),
                         ),
                       ],
                     ),
