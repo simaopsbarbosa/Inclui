@@ -1,0 +1,2 @@
+/Users/simaobarbosa/Developer/feup/esof/project/src/inclui/android/app/.cxx/RelWithDebInfo/f1g5h6v2/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/simaobarbosa/Developer/feup/esof/project/src/inclui/android/app/.cxx/RelWithDebInfo/f1g5h6v2/armeabi-v7a/CMakeFiles/rebuild_cache.dir
