@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'firebase_options.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -129,7 +126,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.blueAccent,
+      color: Colors.lightGreenAccent,
       child: Center(
         child: Text(
           'Home Page Content',
@@ -140,15 +137,120 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class SearchPage extends StatelessWidget {
+class SearchPage extends StatefulWidget {
+  @override
+  _SearchPageState createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  List<String> _reports = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForReports();
+  }
+
+  void _listenForReports() {
+    _database.child('reports').onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data != null && data is Map) {
+        List<String> newReports = [];
+        data.forEach((key, value) {
+          if (value is Map && value.containsKey('timestamp')) {
+            newReports.add(value['timestamp']);
+          }
+        });
+
+        setState(() {
+          _reports = newReports.reversed.toList();
+        });
+      }
+    });
+  }
+
+  void _clearReports() {
+    _database.child('reports').set({}).then((_) {
+      setState(() {
+        _reports.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).primaryColor,
+          content: Text("All reports cleared"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.greenAccent,
-      child: Center(
-        child: Text(
-          'Search Page Content',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+      color: Colors.blueAccent,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Reports',
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (_reports.isNotEmpty)
+                  IconButton(
+                    icon:
+                        Icon(Icons.delete_forever, color: Colors.red, size: 28),
+                    onPressed: _clearReports,
+                  ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: _reports.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No reports found',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _reports.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          color: Colors.white,
+                          margin: EdgeInsets.symmetric(vertical: 5),
+                          child: ListTile(
+                            leading: Icon(Icons.report, color: Colors.black),
+                            title: Text(
+                              'Report #${index + 1}',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              _reports[index],
+                              style: GoogleFonts.inter(fontSize: 14),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -166,26 +268,26 @@ class ReportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.orangeAccent,
+      color: Colors.deepOrangeAccent,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Report Page Content',
-              style:
-                  GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+              'button below adds \nreport into database',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(fontSize: 18),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             ElevatedButton(
               onPressed: _logReport,
-              child: Text('Add Report'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
                 textStyle: GoogleFonts.inter(
                     fontSize: 16, fontWeight: FontWeight.w600),
               ),
+              child: Text('Add Report'),
             ),
           ],
         ),
@@ -198,7 +300,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.purpleAccent,
+      color: Colors.deepPurpleAccent,
       child: Center(
         child: Text(
           'Profile Page Content',
