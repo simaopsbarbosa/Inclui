@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -27,6 +28,47 @@ class MyApp extends StatelessWidget {
       home: HomeScreen(),
     );
   }
+}
+
+/// Determine the current position of the device.
+///
+/// When the location services are not enabled or permissions
+/// are denied the `Future` will return an error.
+Future<Position> _determinePosition() async {
+  bool serviceEnabled;
+  LocationPermission permission;
+
+  // Test if location services are enabled.
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    // Location services are not enabled don't continue
+    // accessing the position and request users of the
+    // App to enable the location services.
+    return Future.error('Location services are disabled.');
+  }
+
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      // Permissions are denied, next time you could try
+      // requesting permissions again (this is also where
+      // Android's shouldShowRequestPermissionRationale
+      // returned true. According to Android guidelines
+      // your App should show an explanatory UI now.
+      return Future.error('Location permissions are denied');
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    // Permissions are denied forever, handle appropriately.
+    return Future.error(
+        'Location permissions are permanently denied, we cannot request permissions.');
+  }
+
+  // When we reach here, permissions are granted and we can
+  // continue accessing the position of the device.
+  return await Geolocator.getCurrentPosition();
 }
 
 class HomeScreen extends StatefulWidget {
@@ -125,14 +167,47 @@ class _HomeScreenState extends State<HomeScreen> {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.lightGreenAccent,
-      child: Center(
-        child: Text(
-          'Home Page Content',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-      ),
+    return FutureBuilder<Position>(
+      future: _determinePosition(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: Colors.lightGreenAccent,
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).primaryColor,
+                backgroundColor: Colors.black,
+              ),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (snapshot.hasData) {
+          Position userLocation = snapshot.data!;
+          return Container(
+            color: Colors.lightGreenAccent,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'User Location:',
+                    style: GoogleFonts.inter(
+                        fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    userLocation.toString(),
+                    style: GoogleFonts.inter(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  )
+                ],
+              ),
+            ),
+          );
+        } else {
+          return Center(child: Text('No location data available'));
+        }
+      },
     );
   }
 }
@@ -209,8 +284,11 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 if (_reports.isNotEmpty)
                   IconButton(
-                    icon:
-                        Icon(Icons.delete_forever, color: Colors.red, size: 28),
+                    icon: Icon(
+                      Icons.delete_forever,
+                      color: Colors.red,
+                      size: 32,
+                    ),
                     onPressed: _clearReports,
                   ),
               ],
@@ -230,7 +308,7 @@ class _SearchPageState extends State<SearchPage> {
                       itemCount: _reports.length,
                       itemBuilder: (context, index) {
                         return Card(
-                          color: Colors.white,
+                          color: Colors.grey.shade100,
                           margin: EdgeInsets.symmetric(vertical: 5),
                           child: ListTile(
                             leading: Icon(Icons.report, color: Colors.black),
@@ -274,7 +352,7 @@ class ReportPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'button below adds \nreport into database',
+              'Button below adds \nreport into database',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(fontSize: 18),
             ),

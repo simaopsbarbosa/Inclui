@@ -13,6 +13,7 @@ dependencies:
   firebase_database: ^11.3.4
   flutter:
     sdk: flutter
+  geolocator: ^13.0.3
   google_fonts: ^6.2.1
 
 dev_dependencies:
