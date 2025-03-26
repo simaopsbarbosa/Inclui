@@ -48,6 +48,15 @@ test/support_assets/*/pubspec.lock
 .pub-cache/
 .pub/
 /build/
+.build/
+pubspec.lock
+
+# Firebase-sensitive files
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firepit-log.txt
+firebase_options.dart
+
 
 # Symbolication related
 app.*.symbols
