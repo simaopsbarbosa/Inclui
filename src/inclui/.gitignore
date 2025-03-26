@@ -54,8 +54,8 @@ pubspec.lock
 # Firebase-sensitive files
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-src/inclui/firepit-log.txt
-src/inclui/lib/firebase_options.dart
+firepit-log.txt
+firebase_options.dart
 
 
 # Symbolication related
