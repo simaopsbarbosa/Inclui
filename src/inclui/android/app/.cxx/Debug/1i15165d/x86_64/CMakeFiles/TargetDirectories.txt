@@ -1,0 +1,2 @@
+/Users/simaobarbosa/Developer/feup/esof/project/src/inclui/android/app/.cxx/Debug/1i15165d/x86_64/CMakeFiles/edit_cache.dir
+/Users/simaobarbosa/Developer/feup/esof/project/src/inclui/android/app/.cxx/Debug/1i15165d/x86_64/CMakeFiles/rebuild_cache.dir

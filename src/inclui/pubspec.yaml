@@ -14,6 +14,7 @@ dependencies:
   firebase_database: ^11.3.4
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
   geolocator: ^13.0.3
   google_fonts: ^6.2.1
 
