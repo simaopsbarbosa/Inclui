@@ -137,7 +137,9 @@ At the end, it is good to add a rough indication of the value of the user story 
 ### Domain model
 
 <p align="center" justify="center">
-  <img alt="Domain Model" src="docs/images/domainModel/domainModel.svg"/>
+  <img alt="Domain Model" src=https://github.com/user-attachments/assets/c1db8767-f7d6-44eb-95da-12d531c2edd9>
+  
+
 </p>
 
 - **User**: Represents an individual who can report accessibility issues for various places. A user can only report each place once, and they must be validated before submitting any reports.
