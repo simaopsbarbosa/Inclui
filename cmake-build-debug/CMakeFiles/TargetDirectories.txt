@@ -1,0 +1,3 @@
+/home/diana/CLionProjects/Proj_ESOFT/cmake-build-debug/CMakeFiles/Proj_ESOFT.dir
+/home/diana/CLionProjects/Proj_ESOFT/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/diana/CLionProjects/Proj_ESOFT/cmake-build-debug/CMakeFiles/rebuild_cache.dir

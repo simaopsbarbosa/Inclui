@@ -24,27 +24,27 @@ class Report {
     +status: String
 }
 
-User "1" -- "*" Report
-Place "1" -- "*" Report
+User "*" -- "*" Place
+(User,Place) .. Report
 
 Report "1" -- "*" AccessibilityIssue : contains >
 
-note right of User
-A user must be validated before 
+note left of User
+A user must be validated before
 they can report accessibility issues.
 A user can only report each place once.
 end note
 
-note right of Place
-A place can have 
-multiple reports, 
-but each report is 
+note left of Place
+A place can have
+multiple reports,
+but each report is
 tied to a specific user.
 end note
 
 note right of AccessibilityIssue
 A report can contain
-multiple predefined 
+multiple predefined
 accessibility issues.
 end note
 
