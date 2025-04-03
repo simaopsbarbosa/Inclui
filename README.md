@@ -251,6 +251,9 @@ You can find below information and references related with the project managemen
 
 ### Sprint 1
 
+Início do Sprint 1:
+![image](https://github.com/user-attachments/assets/8c596065-29d5-472f-a037-151a897aedec)
+
 ### Sprint 2
 
 ### Sprint 3
