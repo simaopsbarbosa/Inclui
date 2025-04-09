@@ -1,28 +1,55 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _db = FirebaseDatabase.instance.ref();
+
   late User? _user;
   late final Stream<User?> _authStateChanges;
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
     _authStateChanges = _auth.authStateChanges();
+
     _authStateChanges.listen((user) {
       setState(() {
         _user = user;
+        _userName = null;
       });
+
+      if (user != null) {
+        _fetchUserName(user.uid);
+      }
     });
+
+    if (_user != null) {
+      _fetchUserName(_user!.uid);
+    }
+  }
+
+  Future<void> _fetchUserName(String uid) async {
+    try {
+      final snapshot = await _db.child('users').child(uid).child('name').get();
+      if (snapshot.exists) {
+        setState(() {
+          _userName = snapshot.value.toString();
+        });
+      }
+    } catch (e) {
+      print('Error fetching user name: $e');
+    }
   }
 
   void _signOut() async {
@@ -53,10 +80,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Welcome, ${_user!.email}',
+                    _userName != null ? 'Welcome, $_userName' : 'Welcome...',
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(height: 20),
