@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
+import 'profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Color(0xFF006CFF),
+        scaffoldBackgroundColor: Color(0xFF060A21),
         canvasColor: Colors.grey[200],
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
@@ -380,17 +382,3 @@ class ReportPage extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.deepPurpleAccent,
-      child: Center(
-        child: Text(
-          'Profile Page Content',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-}
