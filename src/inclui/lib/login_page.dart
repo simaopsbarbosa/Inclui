@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
       _updateState();
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = _formatFirebaseError(e);
       });
     }
   }
@@ -40,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
       _updateState();
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = _formatFirebaseError(e);
       });
     }
   }
@@ -65,96 +65,50 @@ class _LoginPageState extends State<LoginPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.transparent,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(32.0),
-        child: Center(
-          child: user != null
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Logged in as: ',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Text(
-                      '${user.email}',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _signOut,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                      ),
-                      child: Text(
-                        'Logout',
-                        style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white),
-                      ),
-                    ),
-                  ],
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        labelStyle: GoogleFonts.inter(fontSize: 14),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    TextField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: GoogleFonts.inter(fontSize: 14),
-                      ),
-                      obscureText: true,
-                    ),
-                    SizedBox(height: 16),
-                    if (_errorMessage != null)
-                      Text(
-                        _errorMessage!,
-                        style:
-                            GoogleFonts.inter(fontSize: 12, color: Colors.red),
-                      ),
-                    SizedBox(height: 16),
-                    Column(
+        reverse: true,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: 100, top: 100),
+              child: Image.asset(
+                'assets/logo/inclui-w.png',
+                height: 64,
+              ),
+            ),
+            Center(
+              child: user != null
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ElevatedButton(
-                          onPressed: _signIn,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                          ),
-                          child: Text(
-                            'Login',
-                            style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white),
+                        Text(
+                          'Logged in as: ',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
+                        Text(
+                          '${user.email}',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: _register,
+                          onPressed: _signOut,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                           ),
                           child: Text(
-                            'Register',
+                            'Logout',
                             style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -162,11 +116,107 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: 'Email',
+                            hintStyle: GoogleFonts.inter(
+                                fontSize: 14, color: Colors.grey[700]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 14),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        SizedBox(height: 12),
+                        TextField(
+                          controller: _passwordController,
+                          style: GoogleFonts.inter(
+                              fontSize: 14, color: Colors.white),
+                          decoration: InputDecoration(
+                            filled: false,
+                            hintText: 'Password',
+                            hintStyle: GoogleFonts.inter(
+                                fontSize: 14, color: Colors.grey[700]),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade900,
+                                width: 1.5,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor,
+                                width: 2,
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 14),
+                          ),
+                          obscureText: true,
+                        ),
+                        SizedBox(height: 16),
+                        if (_errorMessage != null)
+                          Text(
+                            _errorMessage!,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: Colors.red),
+                          ),
+                        SizedBox(height: 16),
+                        Column(
+                          children: [
+                            ElevatedButton(
+                              onPressed: _signIn,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  minimumSize: Size(120, 40)),
+                              child: Text(
+                                'Login',
+                                style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: _register,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  minimumSize: Size(120, 40)),
+                              child: Text(
+                                'Register',
+                                style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).primaryColor),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+String _formatFirebaseError(dynamic e) {
+  final raw = e.toString();
+  final match = RegExp(r'\]\s(.+)').firstMatch(raw);
+  return match != null ? match.group(1)! : 'An unexpected error occurred.';
 }
