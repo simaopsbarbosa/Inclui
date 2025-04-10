@@ -254,6 +254,10 @@ You can find below information and references related with the project managemen
 Início do Sprint 1:
 ![image](https://github.com/user-attachments/assets/8c596065-29d5-472f-a037-151a897aedec)
 
+Fim do Sprint 1:
+![image](https://github.com/user-attachments/assets/4b9fd802-1341-4af2-bec3-29f44c8594a7)
+
+
 ### Sprint 2
 
 ### Sprint 3
