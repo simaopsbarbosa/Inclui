@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
 import 'report_page.dart';
+import 'profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Color(0xFF006CFF),
+        scaffoldBackgroundColor: Color(0xFF060A21),
         canvasColor: Colors.grey[200],
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
@@ -31,34 +34,27 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-/// Determine the current position of the device.
 Future<Position> _determinePosition() async {
-  bool serviceEnabled;
-  LocationPermission permission;
-
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
     return Future.error('Location services are disabled.');
   }
-
-  permission = await Geolocator.checkPermission();
+  LocationPermission permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
       return Future.error('Location permissions are denied');
     }
   }
-
   if (permission == LocationPermission.deniedForever) {
     return Future.error(
         'Location permissions are permanently denied, we cannot request permissions.');
   }
-
   return await Geolocator.getCurrentPosition();
 }
 
 class HomeScreen extends StatefulWidget {
+  HomeScreen({Key? key}) : super(key: key);
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -71,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return HomePage();
       case 1:
-        return SearchPage(); // Now using the separated SearchPage
+        return SearchPage();
       case 2:
         return ReportPage();
       case 3:
@@ -85,6 +81,25 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _handleAuthButton() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _selectedIndex = 3;
+      });
+    } else {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+      if (result == true) {
+        setState(() {
+          _selectedIndex = 3;
+        });
+      }
+    }
   }
 
   @override
@@ -104,14 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
-              },
+              onPressed: _handleAuthButton,
               child: Text(
-                'Login',
+                FirebaseAuth.instance.currentUser != null ? 'Profile' : 'Login',
                 style: GoogleFonts.inter(
                   color: Theme.of(context).primaryColor,
                   fontSize: 16,
@@ -214,6 +224,11 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _reports = [];
   String _searchQuery = '';
+  List<Map<String, dynamic>> _filteredReports = [];
+
+  double _maxDistance = 10.0;
+  String? _selectedIssueType;
+  final List<String> _issueTypes = ['wheelchair', 'elevator', 'braille'];
 
   @override
   void initState() {
@@ -232,34 +247,47 @@ class _SearchPageState extends State<SearchPage> {
               'timestamp': value['timestamp'] ?? '',
               'name': value['name'] ?? 'Unknown Place',
               'issue': value['issue'] ?? 'Unknown Issue',
-              'distance': value['distance']?.toString() ?? '0',
+              'distance':
+                  double.tryParse(value['distance']?.toString() ?? '0') ?? 0.0,
             });
           }
         });
 
         setState(() {
           _reports = newReports.reversed.toList();
+          _filteredReports = _reports;
         });
       }
     });
   }
 
-  void _clearReports() {
-    _database.child('reports').set({}).then((_) {
-      setState(() {
-        _reports.clear();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Theme.of(context).primaryColor,
-          content: Text("All reports cleared"),
-          duration: Duration(seconds: 2),
-        ),
-      );
+  void _applyFilters() {
+    setState(() {
+      _filteredReports = _reports.where((report) {
+        if (report['distance'] > _maxDistance) {
+          return false;
+        }
+
+        if (_selectedIssueType != null && _selectedIssueType!.isNotEmpty) {
+          if (report['issue'].toString().toLowerCase() !=
+              _selectedIssueType!.toLowerCase()) {
+            return false;
+          }
+        }
+
+        return true;
+      }).toList();
     });
   }
 
-  // Modificado para filtrar APENAS pelo nome
+  void _clearFilters() {
+    setState(() {
+      _maxDistance = 10.0;
+      _selectedIssueType = null;
+      _filteredReports = _reports;
+    });
+  }
+
   List<Map<String, dynamic>> get _filteredReports {
     if (_searchQuery.isEmpty) {
       return _reports;
@@ -277,13 +305,12 @@ class _SearchPageState extends State<SearchPage> {
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 10),
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by place name...', // Texto mais específico
+                hintText: 'Search by place name...',
                 prefixIcon: Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
@@ -301,23 +328,140 @@ class _SearchPageState extends State<SearchPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Reports',
-                  style: GoogleFonts.inter(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                      ),
+                      backgroundColor: Colors.white,
+                      builder: (context) {
+                        return StatefulBuilder(
+                          builder: (BuildContext context,
+                              StateSetter modalSetState) {
+                            return Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Filters',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Max Distance (km)',
+                                    style: GoogleFonts.inter(fontSize: 14),
+                                  ),
+                                  Slider(
+                                    thumbColor: Theme.of(context).primaryColor,
+                                    activeColor: Theme.of(context).primaryColor,
+                                    inactiveColor: Colors.grey[300],
+                                    value: _maxDistance,
+                                    min: 0,
+                                    max: 1000,
+                                    divisions: 20,
+                                    label:
+                                        '${_maxDistance.toStringAsFixed(0)} km',
+                                    onChanged: (value) {
+                                      modalSetState(() {
+                                        _maxDistance = value;
+                                      });
+                                      setState(() {});
+                                    },
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Issue Type',
+                                    style: GoogleFonts.inter(fontSize: 14),
+                                  ),
+                                  SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.8,
+                                    child: DropdownButton<String>(
+                                      menuWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.5,
+                                      value: _selectedIssueType,
+                                      isExpanded: true,
+                                      hint: Text('Select'),
+                                      items: _issueTypes.map((String type) {
+                                        return DropdownMenuItem<String>(
+                                          value: type,
+                                          child: Text(type),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        modalSetState(() {
+                                          _selectedIssueType = value;
+                                        });
+                                        setState(() {});
+                                      },
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          _applyFilters();
+                                          Navigator.pop(context);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Theme.of(context).primaryColor,
+                                            textStyle: GoogleFonts.inter(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            foregroundColor: Colors.white),
+                                        child: Text("Apply"),
+                                      ),
+                                      TextButton.icon(
+                                        onPressed: () {
+                                          _clearFilters();
+                                          Navigator.pop(context);
+                                        },
+                                        icon: Icon(Icons.delete_forever,
+                                            color: Colors.red),
+                                        label: Text(
+                                          'Clear Filters',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 40),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                  icon: Icon(
+                    Icons.filter_list,
                     color: Colors.white,
                   ),
-                ),
-                if (_reports.isNotEmpty)
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_forever,
-                      color: Colors.red,
-                      size: 32,
+                  label: Text("Filters"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    textStyle: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                    onPressed: _clearReports,
+                    foregroundColor: Colors.white,
                   ),
+                ),
               ],
             ),
             SizedBox(height: 10),
@@ -327,7 +471,7 @@ class _SearchPageState extends State<SearchPage> {
                       child: Text(
                         _searchQuery.isEmpty
                             ? 'No reports available'
-                            : 'No places found matching "$_searchQuery"', // Mensagem mais descritiva
+                            : 'No places found matching "$_searchQuery"', 
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           color: Colors.white,
@@ -364,21 +508,6 @@ class _SearchPageState extends State<SearchPage> {
                     ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class ProfilePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.deepPurpleAccent,
-      child: Center(
-        child: Text(
-          'Profile Page Content',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
     );
