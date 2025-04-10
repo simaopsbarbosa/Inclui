@@ -9,7 +9,6 @@ import 'login_page.dart';
 import 'profile_page.dart';
 import 'package:inclui/report_page.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -252,6 +251,7 @@ class _SearchPageState extends State<SearchPage> {
             });
           }
         });
+
         setState(() {
           _reports = newReports.reversed.toList();
           _filteredReports = _reports;
@@ -471,52 +471,9 @@ class _SearchPageState extends State<SearchPage> {
                               ],
                             ),
                           ),
-                          subtitle: Text(
-                            _reports[index],
-                            style: GoogleFonts.inter(fontSize: 14),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ReportPage extends StatelessWidget {
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
-
-  void _logReport() {
-    final timestamp = DateTime.now().toString();
-    _database.child('reports').push().set({'timestamp': timestamp});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.deepOrangeAccent,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Button below adds \nreport into database',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 18),
-            ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _logReport,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                textStyle: GoogleFonts.inter(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              child: Text('Add Report'),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
