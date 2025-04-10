@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
+import 'package:inclui/report_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -225,7 +226,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  List<String> _reports = [];
+  List<Map<String, dynamic>> _reports = [];
 
   @override
   void initState() {
@@ -237,10 +238,15 @@ class _SearchPageState extends State<SearchPage> {
     _database.child('reports').onValue.listen((event) {
       final data = event.snapshot.value;
       if (data != null && data is Map) {
-        List<String> newReports = [];
+        List<Map<String, dynamic>> newReports = [];
         data.forEach((key, value) {
-          if (value is Map && value.containsKey('timestamp')) {
-            newReports.add(value['timestamp']);
+          if (value is Map) {
+            newReports.add({
+              'timestamp': value['timestamp'] ?? '',
+              'name': value['name'] ?? 'Unknown Place',
+              'issue': value['issue'] ?? 'Unknown Issue',
+              'distance': value['distance']?.toString() ?? '0',
+            });
           }
         });
 
@@ -278,14 +284,12 @@ class _SearchPageState extends State<SearchPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Reports',
-                    style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  'Reports',
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
                 if (_reports.isNotEmpty)
@@ -307,71 +311,38 @@ class _SearchPageState extends State<SearchPage> {
                         'No reports found',
                         style: GoogleFonts.inter(
                           fontSize: 18,
+                          color: Colors.white,
                         ),
                       ),
                     )
                   : ListView.builder(
                       itemCount: _reports.length,
                       itemBuilder: (context, index) {
+                        final report = _reports[index];
                         return Card(
-                          color: Colors.grey.shade100,
-                          margin: EdgeInsets.symmetric(vertical: 5),
+                          color: Colors.white,
+                          margin: EdgeInsets.symmetric(vertical: 6),
                           child: ListTile(
                             leading: Icon(Icons.report, color: Colors.black),
                             title: Text(
-                              'Report #${index + 1}',
+                              report['name'],
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            subtitle: Text(
-                              _reports[index],
-                              style: GoogleFonts.inter(fontSize: 14),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Issue: ${report['issue']}'),
+                                Text('Distance: ${report['distance']} km'),
+                                Text('Date: ${report['timestamp']}'),
+                              ],
                             ),
                           ),
                         );
                       },
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ReportPage extends StatelessWidget {
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
-
-  void _logReport() {
-    final timestamp = DateTime.now().toString();
-    _database.child('reports').push().set({'timestamp': timestamp});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.deepOrangeAccent,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Button below adds \nreport into database',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 18),
-            ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _logReport,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                textStyle: GoogleFonts.inter(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              child: Text('Add Report'),
             ),
           ],
         ),

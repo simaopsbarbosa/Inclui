@@ -77,3 +77,6 @@ docs/.next
 # Ignore fvm binary
 fvm
 .env.local
+
+# debug files
+android/app/.cxx/
