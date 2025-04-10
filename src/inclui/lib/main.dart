@@ -227,6 +227,11 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> _reports = [];
+  List<Map<String, dynamic>> _filteredReports = [];
+
+  double _maxDistance = 10.0; 
+  String? _selectedIssueType; 
+  final List<String> _issueTypes = ['wheelchair', 'elevator', 'braille'];
 
   @override
   void initState() {
@@ -245,15 +250,34 @@ class _SearchPageState extends State<SearchPage> {
               'timestamp': value['timestamp'] ?? '',
               'name': value['name'] ?? 'Unknown Place',
               'issue': value['issue'] ?? 'Unknown Issue',
-              'distance': value['distance']?.toString() ?? '0',
+              'distance': double.tryParse(value['distance']?.toString() ?? '0') ?? 0.0,
             });
           }
         });
 
         setState(() {
           _reports = newReports.reversed.toList();
+          _filteredReports = _reports;
         });
       }
+    });
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredReports = _reports.where((report) {
+        if (report['distance'] > _maxDistance) {
+          return false;
+        }
+
+        if (_selectedIssueType != null && _selectedIssueType!.isNotEmpty) {
+          if (report['issue'].toString().toLowerCase() != _selectedIssueType!.toLowerCase()) {
+            return false;
+          }
+        }
+
+        return true;
+      }).toList();
     });
   }
 
@@ -284,13 +308,60 @@ class _SearchPageState extends State<SearchPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Reports',
-                  style: GoogleFonts.inter(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Max Distance (km)',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Slider(
+                      value: _maxDistance,
+                      min: 0,
+                      max: 100,
+                      divisions: 20,
+                      label: '${_maxDistance.toStringAsFixed(0)} km',
+                      onChanged: (value) {
+                        setState(() {
+                          _maxDistance = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Issue Type',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    DropdownButton<String>(
+                      value: _selectedIssueType,
+                      hint: Text(
+                        'Select',
+                        style: GoogleFonts.inter(color: Colors.white),
+                      ),
+                      dropdownColor: Colors.blueAccent,
+                      items: _issueTypes.map((String type) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(type, style: GoogleFonts.inter()),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedIssueType = value;
+                        });
+                      },
+                    ),
+                  ],
                 ),
                 if (_reports.isNotEmpty)
                   IconButton(
@@ -304,8 +375,23 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _applyFilters,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+              ),
+              child: Text(
+                'Apply Filters',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
             Expanded(
-              child: _reports.isEmpty
+              child: _filteredReports.isEmpty
                   ? Center(
                       child: Text(
                         'No reports found',
@@ -316,9 +402,9 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     )
                   : ListView.builder(
-                      itemCount: _reports.length,
+                      itemCount: _filteredReports.length,
                       itemBuilder: (context, index) {
-                        final report = _reports[index];
+                        final report = _filteredReports[index];
                         return Card(
                           color: Colors.white,
                           margin: EdgeInsets.symmetric(vertical: 6),
