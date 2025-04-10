@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
-import 'report_page.dart';
+// import 'report_page.dart';
 import 'profile_page.dart';
 
 void main() async {
@@ -69,9 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
         return HomePage();
       case 1:
         return SearchPage();
+      // case 2:
+      //   return ReportPage();
       case 2:
-        return ReportPage();
-      case 3:
         return ProfilePage();
       default:
         return HomePage();
@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
-        _selectedIndex = 3;
+        _selectedIndex = 2;
       });
     } else {
       final result = await Navigator.push(
@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       if (result == true) {
         setState(() {
-          _selectedIndex = 3;
+          _selectedIndex = 2;
         });
       }
     }
@@ -153,10 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.search_rounded),
             label: 'Search',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_rounded),
-            label: 'Report',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.add_box_rounded),
+          //   label: 'Report',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_rounded),
             label: 'Profile',
