@@ -227,6 +227,8 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> _reports = [];
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -281,6 +283,29 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            SizedBox(height:10),
+
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search for a specific place...',
+                prefixIcon: Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+
+            SizedBox(height:10),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
