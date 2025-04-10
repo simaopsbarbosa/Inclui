@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
+import 'profile_page.dart';
 import 'package:inclui/report_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Color(0xFF006CFF),
+        scaffoldBackgroundColor: Color(0xFF060A21),
         canvasColor: Colors.grey[200],
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
@@ -32,48 +36,27 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Determine the current position of the device.
-///
-/// When the location services are not enabled or permissions
-/// are denied the `Future` will return an error.
 Future<Position> _determinePosition() async {
-  bool serviceEnabled;
-  LocationPermission permission;
-
-  // Test if location services are enabled.
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
-    // Location services are not enabled don't continue
-    // accessing the position and request users of the
-    // App to enable the location services.
     return Future.error('Location services are disabled.');
   }
-
-  permission = await Geolocator.checkPermission();
+  LocationPermission permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      // Permissions are denied, next time you could try
-      // requesting permissions again (this is also where
-      // Android's shouldShowRequestPermissionRationale
-      // returned true. According to Android guidelines
-      // your App should show an explanatory UI now.
       return Future.error('Location permissions are denied');
     }
   }
-
   if (permission == LocationPermission.deniedForever) {
-    // Permissions are denied forever, handle appropriately.
     return Future.error(
         'Location permissions are permanently denied, we cannot request permissions.');
   }
-
-  // When we reach here, permissions are granted and we can
-  // continue accessing the position of the device.
   return await Geolocator.getCurrentPosition();
 }
 
 class HomeScreen extends StatefulWidget {
+  HomeScreen({Key? key}) : super(key: key);
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -102,6 +85,25 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _handleAuthButton() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _selectedIndex = 3;
+      });
+    } else {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+      if (result == true) {
+        setState(() {
+          _selectedIndex = 3;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,14 +121,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
-              },
+              onPressed: _handleAuthButton,
               child: Text(
-                'Login',
+                FirebaseAuth.instance.currentUser != null ? 'Profile' : 'Login',
                 style: GoogleFonts.inter(
                   color: Theme.of(context).primaryColor,
                   fontSize: 16,
@@ -255,7 +252,6 @@ class _SearchPageState extends State<SearchPage> {
             });
           }
         });
-
         setState(() {
           _reports = newReports.reversed.toList();
           _filteredReports = _reports;
@@ -475,26 +471,54 @@ class _SearchPageState extends State<SearchPage> {
                               ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
+                          subtitle: Text(
+                            _reports[index],
+                            style: GoogleFonts.inter(fontSize: 14),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ReportPage extends StatelessWidget {
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+
+  void _logReport() {
+    final timestamp = DateTime.now().toString();
+    _database.child('reports').push().set({'timestamp': timestamp});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.deepPurpleAccent,
+      color: Colors.deepOrangeAccent,
       child: Center(
-        child: Text(
-          'Profile Page Content',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Button below adds \nreport into database',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(fontSize: 18),
+            ),
+            SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: _logReport,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                textStyle: GoogleFonts.inter(
+                    fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              child: Text('Add Report'),
+            ),
+          ],
         ),
       ),
     );
