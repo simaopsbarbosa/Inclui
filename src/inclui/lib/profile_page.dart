@@ -78,19 +78,6 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // format the date in DD/MM/YYYY format
-  String _formatDate(String isoDate) {
-    try {
-      final date = DateTime.parse(isoDate).toLocal();
-      final day = date.day.toString().padLeft(2, '0');
-      final month = date.month.toString().padLeft(2, '0');
-      final year = date.year.toString();
-      return "Joined $day/$month/$year";
-    } catch (e) {
-      return '';
-    }
-  }
-
   void _signOut() async {
     await _auth.signOut();
 
@@ -169,7 +156,7 @@ class ProfilePageState extends State<ProfilePage> {
                 SizedBox(height: 50),
                 if (_createdAt != null)
                   Text(
-                    _formatDate(_createdAt!),
+                    formatDate(_createdAt!),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
@@ -240,5 +227,18 @@ class ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
+  }
+}
+
+// format the date in DD/MM/YYYY format
+String formatDate(String isoDate) {
+  try {
+    final date = DateTime.parse(isoDate).toLocal();
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return "Joined $day/$month/$year";
+  } catch (e) {
+    return '';
   }
 }
