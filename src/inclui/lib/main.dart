@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 Future<Position> _determinePosition() async {
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
@@ -224,9 +225,8 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _reports = [];
   String _searchQuery = '';
-  List<Map<String, dynamic>> _filteredReports = [];
 
-  double _maxDistance = 10.0;
+  double _maxDistance = 1000.0;
   String? _selectedIssueType;
   final List<String> _issueTypes = ['wheelchair', 'elevator', 'braille'];
 
@@ -255,47 +255,34 @@ class _SearchPageState extends State<SearchPage> {
 
         setState(() {
           _reports = newReports.reversed.toList();
-          _filteredReports = _reports;
         });
       }
     });
   }
 
-  void _applyFilters() {
-    setState(() {
-      _filteredReports = _reports.where((report) {
-        if (report['distance'] > _maxDistance) {
-          return false;
-        }
-
-        if (_selectedIssueType != null && _selectedIssueType!.isNotEmpty) {
-          if (report['issue'].toString().toLowerCase() !=
-              _selectedIssueType!.toLowerCase()) {
-            return false;
-          }
-        }
-
-        return true;
-      }).toList();
-    });
-  }
-
   void _clearFilters() {
     setState(() {
-      _maxDistance = 10.0;
+      _maxDistance = 1000.0;
       _selectedIssueType = null;
-      _filteredReports = _reports;
+      _searchQuery = '';
+      _searchController.clear();
     });
   }
 
-  List<Map<String, dynamic>> get _filteredReports {
-    if (_searchQuery.isEmpty) {
-      return _reports;
-    }
-    return _reports
-        .where((report) =>
-            report['name'].toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+  List<Map<String, dynamic>> getFilteredReports() {
+    return _reports.where((report) {
+      final nameMatches =
+          report['name'].toLowerCase().contains(_searchQuery.toLowerCase());
+
+      final distanceMatches = report['distance'] <= _maxDistance;
+
+      final issueMatches = _selectedIssueType == null ||
+          _selectedIssueType!.isEmpty ||
+          report['issue'].toString().toLowerCase() ==
+              _selectedIssueType!.toLowerCase();
+
+      return nameMatches && distanceMatches && issueMatches;
+    }).toList();
   }
 
   @override
@@ -385,9 +372,6 @@ class _SearchPageState extends State<SearchPage> {
                                     width:
                                         MediaQuery.of(context).size.width * 0.8,
                                     child: DropdownButton<String>(
-                                      menuWidth:
-                                          MediaQuery.of(context).size.width *
-                                              0.5,
                                       value: _selectedIssueType,
                                       isExpanded: true,
                                       hint: Text('Select'),
@@ -412,7 +396,6 @@ class _SearchPageState extends State<SearchPage> {
                                     children: [
                                       ElevatedButton(
                                         onPressed: () {
-                                          _applyFilters();
                                           Navigator.pop(context);
                                         },
                                         style: ElevatedButton.styleFrom(
@@ -466,46 +449,52 @@ class _SearchPageState extends State<SearchPage> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: _filteredReports.isEmpty
-                  ? Center(
-                      child: Text(
-                        _searchQuery.isEmpty
-                            ? 'No reports available'
-                            : 'No places found matching "$_searchQuery"', 
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: _filteredReports.length,
-                      itemBuilder: (context, index) {
-                        final report = _filteredReports[index];
-                        return Card(
-                          color: Colors.white,
-                          margin: EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            leading: Icon(Icons.report, color: Colors.black),
-                            title: Text(
-                              report['name'],
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Issue: ${report['issue']}'),
-                                Text('Distance: ${report['distance']} km'),
-                                Text('Date: ${report['timestamp']}'),
-                              ],
+              child: Builder(
+                builder: (context) {
+                  final filtered = getFilteredReports();
+                  return filtered.isEmpty
+                      ? Center(
+                          child: Text(
+                            _searchQuery.isEmpty
+                                ? 'No reports available'
+                                : 'No places found matching "$_searchQuery"',
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              color: Colors.white,
                             ),
                           ),
+                        )
+                      : ListView.builder(
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final report = filtered[index];
+                            return Card(
+                              color: Colors.white,
+                              margin: EdgeInsets.symmetric(vertical: 6),
+                              child: ListTile(
+                                leading:
+                                    Icon(Icons.report, color: Colors.black),
+                                title: Text(
+                                  report['name'],
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Issue: ${report['issue']}'),
+                                    Text('Distance: ${report['distance']} km'),
+                                    Text('Date: ${report['timestamp']}'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         );
-                      },
-                    ),
+                },
+              ),
             ),
           ],
         ),
