@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
 import 'profile_page.dart';
+import 'package:inclui/report_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -221,7 +223,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  List<String> _reports = [];
+  List<Map<String, dynamic>> _reports = [];
 
   @override
   void initState() {
@@ -233,10 +235,15 @@ class _SearchPageState extends State<SearchPage> {
     _database.child('reports').onValue.listen((event) {
       final data = event.snapshot.value;
       if (data != null && data is Map) {
-        List<String> newReports = [];
+        List<Map<String, dynamic>> newReports = [];
         data.forEach((key, value) {
-          if (value is Map && value.containsKey('timestamp')) {
-            newReports.add(value['timestamp']);
+          if (value is Map) {
+            newReports.add({
+              'timestamp': value['timestamp'] ?? '',
+              'name': value['name'] ?? 'Unknown Place',
+              'issue': value['issue'] ?? 'Unknown Issue',
+              'distance': value['distance']?.toString() ?? '0',
+            });
           }
         });
         setState(() {
@@ -279,6 +286,7 @@ class _SearchPageState extends State<SearchPage> {
                   style: GoogleFonts.inter(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -289,34 +297,43 @@ class _SearchPageState extends State<SearchPage> {
                     color: Colors.red,
                     size: 32,
                   ),
-                  onPressed: _clearReports,
-                ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: _reports.isEmpty
-                ? Center(
-                    child: Text(
-                      'No reports found',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
+              ],
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: _reports.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No reports found',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _reports.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        color: Colors.grey.shade100,
-                        margin: EdgeInsets.symmetric(vertical: 5),
-                        child: ListTile(
-                          leading: Icon(Icons.report, color: Colors.black),
-                          title: Text(
-                            'Report #${index + 1}',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                    )
+                  : ListView.builder(
+                      itemCount: _reports.length,
+                      itemBuilder: (context, index) {
+                        final report = _reports[index];
+                        return Card(
+                          color: Colors.white,
+                          margin: EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            leading: Icon(Icons.report, color: Colors.black),
+                            title: Text(
+                              report['name'],
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Issue: ${report['issue']}'),
+                                Text('Distance: ${report['distance']} km'),
+                                Text('Date: ${report['timestamp']}'),
+                              ],
                             ),
                           ),
                           subtitle: Text(
