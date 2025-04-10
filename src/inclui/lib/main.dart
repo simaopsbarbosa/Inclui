@@ -6,8 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
+import 'report_page.dart';
 import 'profile_page.dart';
-import 'package:inclui/report_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +34,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 Future<Position> _determinePosition() async {
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
@@ -222,7 +221,9 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _reports = [];
+  String _searchQuery = '';
   List<Map<String, dynamic>> _filteredReports = [];
 
   double _maxDistance = 10.0;
@@ -287,6 +288,16 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  List<Map<String, dynamic>> get _filteredReports {
+    if (_searchQuery.isEmpty) {
+      return _reports;
+    }
+    return _reports
+        .where((report) =>
+            report['name'].toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -295,6 +306,25 @@ class _SearchPageState extends State<SearchPage> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
+            SizedBox(height: 10),
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by place name...',
+                prefixIcon: Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+            SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -439,7 +469,9 @@ class _SearchPageState extends State<SearchPage> {
               child: _filteredReports.isEmpty
                   ? Center(
                       child: Text(
-                        'No reports found',
+                        _searchQuery.isEmpty
+                            ? 'No reports available'
+                            : 'No places found matching "$_searchQuery"', 
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           color: Colors.white,
