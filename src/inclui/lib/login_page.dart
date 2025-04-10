@@ -230,13 +230,24 @@ class LoginPageState extends State<LoginPage> {
             ),
             TextButton(
               onPressed: _toggleMode,
-              child: Text(
-                isRegistering
-                    ? 'Already have an account? Login'
-                    : 'Don’t have an account? Register',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: Colors.white,
+              child: Text.rich(
+                TextSpan(
+                  text: isRegistering
+                      ? 'Already have an account? '
+                      : 'Don’t have an account? ',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.white,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: isRegistering ? 'Login' : 'Register',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
