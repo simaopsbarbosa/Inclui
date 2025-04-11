@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
@@ -102,6 +103,77 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  String maskEmail(String email) {
+    final parts = email.split('@');
+    final visible = parts[0].substring(0,2);
+    final masked = '*' * (parts[0].length - 2);
+    return '$visible$masked@${parts[1]}';
+  }
+
+  void _verifyAccountAction() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final email = user?.email?? '';
+    final maskedEmail = maskEmail(email);
+
+    showDialog(
+      context: context, 
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "You are one step away from verification!",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                  ),
+                ),
+                Text(
+                  "We have sent a 6-digit code to:",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  maskedEmail,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _signOut,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    'Verify',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],)
+          ),
+        ),
+    );
+  } 
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -110,7 +182,14 @@ class ProfilePageState extends State<ProfilePage> {
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : (_user != null ? _buildUserProfile() : _buildLoggedOutView()),
+          : (_user != null 
+              ? Column (
+                  children: [
+                    _buildUserProfile(),
+                    if (!_user!.emailVerified) _verifyAccount(),
+                  ],
+                )
+              : _buildLoggedOutView()),
     );
   }
 
@@ -184,6 +263,56 @@ class ProfilePageState extends State<ProfilePage> {
             ),
             child: Text(
               'Logout',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _verifyAccount() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.pinkAccent,
+            size: 24,
+          ),
+          SizedBox(width: 12),
+          Expanded (
+            child: Text(
+              'Your account needs to be verified in order to leave reviews.',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w300,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: _verifyAccountAction,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Verify Now',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
