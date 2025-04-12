@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -119,27 +120,27 @@ class ProfilePageState extends State<ProfilePage> {
       context: context, 
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Color(0xFF0A1128),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "You are one step away from verification!",
+                  "Verification Code",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w300,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
                   ),
                 ),
                 Text(
-                  "We have sent a 6-digit code to:",
+                  "We have sent a 6-digit code to",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w300,
                       color: Colors.white,
                   ),
                 ),
@@ -148,12 +149,55 @@ class ProfilePageState extends State<ProfilePage> {
                   maskedEmail,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w300,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(6, (index) {
+                    return SizedBox(
+                      height: 50,
+                      width: 40,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xFF242B41),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                            style: BorderStyle.none,
+                          ),
+                        ),
+                        child: TextFormField(
+                          onChanged: (value) {
+                            if (value.length == 1) {
+                              FocusScope.of(context).nextFocus();
+                            }
+                          },
+                          style: GoogleFonts.inter(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.white,
+                          ),
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(1),
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _signOut,
                   style: ElevatedButton.styleFrom(
@@ -214,14 +258,29 @@ class ProfilePageState extends State<ProfilePage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _userName ?? 'Loading...',
-                  style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                Row (
+                  children: [
+                    Text(
+                      _userName ?? 'Loading...',
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (_user != null && _user?.emailVerified == true) ...[
+                      SizedBox(width: 5), 
+                      Align (
+                        alignment: Alignment.bottomCenter,
+                        child: Icon(
+                          Icons.verified,
+                          color: Theme.of(context).primaryColor,
+                          size: 18.5,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 Text(
                   _user?.email ?? 'No email',
