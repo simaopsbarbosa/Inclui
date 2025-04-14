@@ -21,6 +21,7 @@ class ProfilePageState extends State<ProfilePage> {
   String? _userName;
   String? _createdAt;
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -104,6 +105,174 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _setError(String message) {
+    setState(() => _errorMessage = message);
+  }
+
+  Future<void> _updateEmail(String newEmail, String password) async {
+    if (newEmail.isEmpty) {
+      return _setError("Please enter a new email.");
+    }
+    if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(newEmail)) {
+      return _setError("Please enter a valid email.");
+    }
+    if (password.isEmpty) {
+      return _setError("Please enter your password.");
+    }
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && user.email != null) {
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+        await user.reauthenticateWithCredential(credential);
+        await user.verifyBeforeUpdateEmail(newEmail);
+        _verifyAccountAction();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Email updated. Please verify.'),
+            backgroundColor: Theme.of(context).primaryColor,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Something went wrong.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _changeEmail() async {
+    String newEmail = '';
+    String password = '';
+
+    await showDialog(
+      context: context, 
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Color(0xFF0A1128),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Change Email",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                ),
+              ),
+              TextField(
+                style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                ),
+                onChanged: (value) => newEmail = value,
+                decoration: InputDecoration(
+                  hintText: "Enter new email",
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                  )
+                ),
+              ),
+              TextField(
+                obscureText: true,
+                style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                ),
+                onChanged: (value) => password = value,
+                decoration: InputDecoration(
+                  hintText: "Enter password",
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                  )
+                ),
+              ),
+              SizedBox(height: 15),
+              Row (
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(width: 13),
+                  TextButton(
+                    child: Text(
+                      'Cancel',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                      ),
+                    ),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await Future.delayed(Duration(milliseconds: 100));
+                      _verifyAccountAction();
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      'Update',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onPressed: () {
+                      _updateEmail(newEmail, password);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  SizedBox(width: 13),
+                ],
+              ), 
+            ],
+          ),
+        ),
+      )
+    );
+  }
+
+  void _sendVerificationEmail() async {
+    try {
+      if (_user != null && !_user!.emailVerified) {
+        await _user!.sendEmailVerification();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Verification email sent.'),
+            backgroundColor: Theme.of(context).primaryColor,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+
   String maskEmail(String email) {
     final parts = email.split('@');
     final visible = parts[0].substring(0,2);
@@ -144,7 +313,7 @@ class ProfilePageState extends State<ProfilePage> {
                       color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 16),
                 Text(
                   maskedEmail,
                   textAlign: TextAlign.center,
@@ -154,7 +323,22 @@ class ProfilePageState extends State<ProfilePage> {
                       color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 20),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await Future.delayed(Duration(milliseconds: 100));
+                    _changeEmail();
+                  },
+                  child: Text(
+                    'Not your email?',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),    
+                SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(6, (index) {
@@ -199,7 +383,31 @@ class ProfilePageState extends State<ProfilePage> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: _signOut,
+                  onPressed: () async {
+                    await _user?.reload();
+                    var updatedUser = FirebaseAuth.instance.currentUser;
+                    if (updatedUser?.emailVerified == true) {
+                      setState(() {
+                        _user = updatedUser;
+                      });
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Verification successful."),
+                          backgroundColor: Theme.of(context).primaryColor,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Still not verified"),
+                          backgroundColor: Colors.red,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
@@ -209,10 +417,22 @@ class ProfilePageState extends State<ProfilePage> {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-            ],)
+                TextButton(
+                  onPressed: _sendVerificationEmail,
+                  child: Text(
+                    'Did not receive a code?',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
     );
@@ -221,7 +441,7 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: _isLoading
           ? Center(
               child: CircularProgressIndicator(),
@@ -243,10 +463,10 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.all(20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFF0A1128),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: Color(0xFF242B41),
           width: 1,
         ),
       ),
@@ -265,7 +485,7 @@ class ProfilePageState extends State<ProfilePage> {
                       style: GoogleFonts.inter(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        color: Colors.white,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -287,7 +507,7 @@ class ProfilePageState extends State<ProfilePage> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -298,7 +518,7 @@ class ProfilePageState extends State<ProfilePage> {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -307,7 +527,7 @@ class ProfilePageState extends State<ProfilePage> {
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -339,33 +559,37 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFF0A1128),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: Color(0xFF242B41),
           width: 1,
         ),
       ),
       child: Row(
         children: [
           Icon(
-            Icons.warning_amber_rounded,
+            Icons.warning_rounded,
             color: Colors.pinkAccent,
-            size: 24,
+            size: 35,
           ),
-          SizedBox(width: 12),
+          SizedBox(width: 13),
           Expanded (
             child: Text(
               'Your account needs to be verified in order to leave reviews.',
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w300,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
           ),
+          SizedBox(width: 12),
           ElevatedButton(
-            onPressed: _verifyAccountAction,
+            onPressed:() async {
+              _sendVerificationEmail();
+              _verifyAccountAction();
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
@@ -394,7 +618,7 @@ class ProfilePageState extends State<ProfilePage> {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
           SizedBox(height: 20),
