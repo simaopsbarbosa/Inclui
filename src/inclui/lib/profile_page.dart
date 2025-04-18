@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,8 @@ class ProfilePageState extends State<ProfilePage> {
   String? _createdAt;
   bool _isLoading = true;
   String? _errorMessage;
+  int _countdown = 0;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -105,7 +108,7 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _setError(String message) {
+  /* void _setError(String message) {
     setState(() => _errorMessage = message);
   }
 
@@ -255,6 +258,27 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _startCountdown() {
+    setState(() {
+      _countdown = 90;
+    });
+    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_countdown == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _countdown--;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  } */
+
   void _sendVerificationEmail() async {
     try {
       if (_user != null && !_user!.emailVerified) {
@@ -296,7 +320,7 @@ class ProfilePageState extends State<ProfilePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Verification Code",
+                  "Verification Email",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 17,
@@ -305,7 +329,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 Text(
-                  "We have sent a 6-digit code to",
+                  "We have sent a verification link to:",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 13,
@@ -323,7 +347,7 @@ class ProfilePageState extends State<ProfilePage> {
                       color: Colors.white,
                   ),
                 ),
-                TextButton(
+                /*TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
                     await Future.delayed(Duration(milliseconds: 100));
@@ -337,51 +361,8 @@ class ProfilePageState extends State<ProfilePage> {
                       color: Theme.of(context).primaryColor,
                     ),
                   ),
-                ),    
+                ), */
                 SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(6, (index) {
-                    return SizedBox(
-                      height: 50,
-                      width: 40,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Color(0xFF242B41),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.grey[300]!,
-                            width: 1,
-                            style: BorderStyle.none,
-                          ),
-                        ),
-                        child: TextFormField(
-                          onChanged: (value) {
-                            if (value.length == 1) {
-                              FocusScope.of(context).nextFocus();
-                            }
-                          },
-                          style: GoogleFonts.inter(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white,
-                          ),
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(1),
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
                     await _user?.reload();
@@ -420,17 +401,35 @@ class ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
+                SizedBox(height: 0),
                 TextButton(
-                  onPressed: _sendVerificationEmail,
+                  onPressed: /*_countdown == 0 ? () {*/
+                    _sendVerificationEmail,
+                    //_startCountdown();
+                  //} : null, 
                   child: Text(
-                    'Did not receive a code?',
+                    'Did not receive an email? Resend',
                     style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).primaryColor,
+                      fontSize: 12,
+                      fontWeight: /*_countdown == 0
+                      ?*/ FontWeight.w600, //: FontWeight.w300,
+                      color: /*_countdown == 0 
+                      ?*/ Theme.of(context).primaryColor, //: Colors.white,
+                      /*decoration: _countdown == 0
+                      ? TextDecoration.underline, : null*/
                     ),
                   ),
                 ),
+                /*Text(
+                  _countdown == 0
+                  ? ''
+                  : 'available in $_countdown seconds',
+                  style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                    ),
+                )*/
               ],
             ),
           ),
@@ -589,6 +588,7 @@ class ProfilePageState extends State<ProfilePage> {
             onPressed:() async {
               _sendVerificationEmail();
               _verifyAccountAction();
+              //_startCountdown();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
