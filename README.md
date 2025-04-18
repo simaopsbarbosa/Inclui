@@ -257,6 +257,8 @@ Início do Sprint 1:
 Fim do Sprint 1:
 ![image](https://github.com/user-attachments/assets/4b9fd802-1341-4af2-bec3-29f44c8594a7)
 
+**Retrospective**: In Sprint 1, we were overly ambitious and selected too many user stories, underestimating how busy school would be. Despite that, we managed to complete everything thanks to a strong team effort. Moving forward, we’ll be more mindful of our schedules when planning and choose user stories more carefully. 
+
 
 ### Sprint 2
 
