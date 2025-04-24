@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
@@ -23,7 +21,6 @@ class ProfilePageState extends State<ProfilePage> {
   String? _userName;
   String? _createdAt;
   bool _isLoading = true;
-  String? _errorMessage;
   int _countdown = 0;
   Timer? _countdownTimer;
   final int timerDuration = 60;
@@ -457,12 +454,15 @@ void _verifyAccountAction() async {
   showDialog(
     context: context,
     builder: (context) {
-      return WillPopScope(
-        onWillPop: () async {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
           // Clean up resources when dialog is closed
+          if (didPop) {
+            return;
+          }
           updateTimer?.cancel();
           streamController.close();
-          return true;
         },
         child: StreamBuilder<int>(
           stream: streamController.stream,
