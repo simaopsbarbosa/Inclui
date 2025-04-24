@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:geolocator/geolocator.dart';
 import 'firebase_options.dart';
 import 'login_page.dart';
+import 'home_page.dart';
 // import 'report_page.dart';
 import 'profile_page.dart';
 
@@ -33,25 +33,6 @@ class MyApp extends StatelessWidget {
       home: HomeScreen(),
     );
   }
-}
-
-Future<Position> _determinePosition() async {
-  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    return Future.error('Location services are disabled.');
-  }
-  LocationPermission permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
-      return Future.error('Location permissions are denied');
-    }
-  }
-  if (permission == LocationPermission.deniedForever) {
-    return Future.error(
-        'Location permissions are permanently denied, we cannot request permissions.');
-  }
-  return await Geolocator.getCurrentPosition();
 }
 
 class HomeScreen extends StatefulWidget {
@@ -167,53 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Position>(
-      future: _determinePosition(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            color: Colors.lightGreenAccent,
-            child: Center(
-              child: CircularProgressIndicator(
-                color: Theme.of(context).primaryColor,
-                backgroundColor: Colors.black,
-              ),
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
-          Position userLocation = snapshot.data!;
-          return Container(
-            color: Colors.lightGreenAccent,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'User Location:',
-                    style: GoogleFonts.inter(
-                        fontSize: 18, fontWeight: FontWeight.w700),
-                  ),
-                  Text(
-                    userLocation.toString(),
-                    style: GoogleFonts.inter(fontSize: 16),
-                    textAlign: TextAlign.center,
-                  )
-                ],
-              ),
-            ),
-          );
-        } else {
-          return Center(child: Text('No location data available'));
-        }
-      },
-    );
-  }
-}
+
 
 class SearchPage extends StatefulWidget {
   @override
