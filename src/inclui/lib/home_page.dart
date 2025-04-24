@@ -42,6 +42,7 @@ class HomePage extends StatelessWidget {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           Position userLocation = snapshot.data!;
+          print(userLocation.latitude + userLocation.longitude);
           return GoogleMap(
             initialCameraPosition: CameraPosition(
               target: LatLng(userLocation.latitude, userLocation.longitude),
