@@ -21,8 +21,8 @@ Future<Position> _determinePosition() async {
   return await Geolocator.getCurrentPosition();
 }
 
-
 class HomePage extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Position>(
@@ -30,7 +30,7 @@ class HomePage extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            color: Colors.lightGreenAccent,
+            color: Colors.white,
             child: Center(
               child: CircularProgressIndicator(
                 color: Theme.of(context).primaryColor,
@@ -42,7 +42,6 @@ class HomePage extends StatelessWidget {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           Position userLocation = snapshot.data!;
-          print(userLocation.latitude + userLocation.longitude);
           return GoogleMap(
             initialCameraPosition: CameraPosition(
               target: LatLng(userLocation.latitude, userLocation.longitude),
