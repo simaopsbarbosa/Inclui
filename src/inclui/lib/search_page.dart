@@ -46,7 +46,8 @@ class SearchPageState extends State<SearchPage> {
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeComponent(query)}'
         '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}'
-        '&components=country:pt',
+        '&components=country:pt'
+        '&types=establishment',
       ));
 
       final json = jsonDecode(response.body);
@@ -66,7 +67,7 @@ class SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
-    _debounce?.cancel(); // <-- Clean up the timer
+    _debounce?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -137,9 +138,7 @@ class SearchPageState extends State<SearchPage> {
                                 color: Colors.grey.shade400, width: 2.0),
                           ),
                         ),
-
-                        onChanged: (value) =>
-                            _onSearchChanged(), // Your custom fetch function
+                        onChanged: (value) => _onSearchChanged(),
                       ),
                     ),
                   ),
@@ -293,11 +292,42 @@ class SearchPageState extends State<SearchPage> {
                       shadowColor: Colors.transparent,
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
-                        child: ListTile(
-                          leading: Icon(Icons.place,
-                              color: Theme.of(context).primaryColor),
-                          title: Text(prediction['name'] ?? ''),
-                          subtitle: Text(prediction['address'] ?? ''),
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: Icon(Icons.place,
+                                  color: Theme.of(context).primaryColor),
+                              title: Text(prediction['name'] ?? ''),
+                              subtitle: Text(prediction['address'] ?? ''),
+                            ),
+                            // Padding(
+                            //   padding: const EdgeInsets.all(8.0),
+                            //   child: SizedBox(
+                            //     width: double.infinity,
+                            //     child: TextButton(
+                            //       onPressed: () {
+                            //         // TODO: vai ser aqui a logica de pagina de report
+                            //       },
+                            //       style: ButtonStyle(
+                            //         shape: WidgetStateProperty.all(
+                            //           RoundedRectangleBorder(
+                            //             borderRadius: BorderRadius.circular(16),
+                            //           ),
+                            //         ),
+                            //         backgroundColor: WidgetStateProperty.all(
+                            //             Theme.of(context).primaryColor),
+                            //       ),
+                            //       child: Text(
+                            //         'Report Issues',
+                            //         style: TextStyle(
+                            //           color: Colors.white,
+                            //           fontSize: 16,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                          ],
                         ),
                       ),
                     );
