@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
@@ -22,9 +20,6 @@ class ProfilePageState extends State<ProfilePage> {
   String? _userName;
   String? _createdAt;
   bool _isLoading = true;
-  String? _errorMessage;
-  int _countdown = 0;
-  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -108,7 +103,7 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-    void _sendVerificationEmail() async {
+  void _sendVerificationEmail() async {
     try {
       if (_user != null && !_user!.emailVerified) {
         await _user!.sendEmailVerification();
@@ -123,14 +118,6 @@ class ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       print(e.toString());
     }
-  }
-
-
-  String maskEmail(String email) {
-    final parts = email.split('@');
-    final visible = parts[0].substring(0,2);
-    final masked = '*' * (parts[0].length - 2);
-    return '$visible$masked@${parts[1]}';
   }
 
   void _verifyAccountAction() async {
@@ -437,6 +424,17 @@ class ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
+
+String maskEmail(String email) {
+  if (!email.contains('@')) return 'Invalid email';
+
+  final parts = email.split('@');
+  if (parts[0].length < 2) return 'Invalid email';
+
+  final visible = parts[0].substring(0,2);
+  final masked = '*' * (parts[0].length - 2);
+  return '$visible$masked@${parts[1]}';
 }
 
 // format the date in DD/MM/YYYY format
