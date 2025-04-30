@@ -357,132 +357,94 @@ void _verifyAccountAction() async {
 
   showDialog(
     context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setStateDialog) {
-          // Timer para atualizar o dialog a cada segundo
-          if (_countdown > 0) {
-            Timer.periodic(Duration(seconds: 1), (timer) {
-              if (_countdown <= 0) {
-                timer.cancel();
-              } else {
-                setStateDialog(() {});
-              }
-            });
-          }
-
-          return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            backgroundColor: Color(0xFF0A1128),
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Verification Email",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "We have sent a verification link to:",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    maskedEmail,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await user?.reload();
-                      if (user?.emailVerified ?? false) {
-                        Navigator.pop(context);
-                        setState(() {});
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Verification successful."),
-                            backgroundColor: Theme.of(context).primaryColor,
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Still not verified"),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text("Verify"),
-                  ),
-                  SizedBox(height: 20),
-                  Column(
-                    children: [
-                      TextButton(
-                        onPressed: _countdown > 0 ? null : () {
-                          _sendVerificationEmail();
-                          setStateDialog(() {
-                            // Mostra a contagem regressiva completa imediatamente
-                            _countdown = timerDuration;
-                          });
-                        },
-                        child: Column(
-                          children: [
-                            Text(
-                              'Resend verification email',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _countdown > 0
-                                    ? Colors.grey
-                                    : Theme.of(context).primaryColor,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              _countdown > 0
-                                  ? 'New email available in $_countdown seconds'
-                                  : 'Click to resend verification email',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: _countdown > 0
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Color(0xFF0A1128),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Verification Email",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-          );
-        },
-      );
-    },
+            SizedBox(height: 10),
+            Text(
+              "We have sent a verification link to:",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w300,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              maskedEmail,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                await user?.reload();
+                if (user?.emailVerified ?? false) {
+                  Navigator.pop(context);
+                  setState(() {});
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Verification successful."),
+                      backgroundColor: Theme.of(context).primaryColor,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Still not verified"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Verify"),
+            ),
+            SizedBox(height: 10),
+            TextButton(
+              onPressed: _countdown > 0 ? null : () {
+                _sendVerificationEmail();
+                Navigator.pop(context);
+              },
+              child: Text(
+                _countdown > 0
+                    ? 'Wait $_countdown seconds to resend'
+                    : 'Resend verification email',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _countdown > 0
+                      ? Colors.grey
+                      : Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
   );
 }
 
