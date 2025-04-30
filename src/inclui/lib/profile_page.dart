@@ -108,178 +108,7 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  /* void _setError(String message) {
-    setState(() => _errorMessage = message);
-  }
-
-  Future<void> _updateEmail(String newEmail, String password) async {
-    if (newEmail.isEmpty) {
-      return _setError("Please enter a new email.");
-    }
-    if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(newEmail)) {
-      return _setError("Please enter a valid email.");
-    }
-    if (password.isEmpty) {
-      return _setError("Please enter your password.");
-    }
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null && user.email != null) {
-        final credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: password,
-        );
-        await user.reauthenticateWithCredential(credential);
-        await user.verifyBeforeUpdateEmail(newEmail);
-        _verifyAccountAction();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Email updated. Please verify.'),
-            backgroundColor: Theme.of(context).primaryColor,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      print(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Something went wrong.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
-  void _changeEmail() async {
-    String newEmail = '';
-    String password = '';
-
-    await showDialog(
-      context: context, 
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Color(0xFF0A1128),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Change Email",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                ),
-              ),
-              TextField(
-                style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                ),
-                onChanged: (value) => newEmail = value,
-                decoration: InputDecoration(
-                  hintText: "Enter new email",
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                  )
-                ),
-              ),
-              TextField(
-                obscureText: true,
-                style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                ),
-                onChanged: (value) => password = value,
-                decoration: InputDecoration(
-                  hintText: "Enter password",
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                  )
-                ),
-              ),
-              SizedBox(height: 15),
-              Row (
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(width: 13),
-                  TextButton(
-                    child: Text(
-                      'Cancel',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                      ),
-                    ),
-                    onPressed: () async {
-                      Navigator.of(context).pop();
-                      await Future.delayed(Duration(milliseconds: 100));
-                      _verifyAccountAction();
-                    },
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      'Update',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    onPressed: () {
-                      _updateEmail(newEmail, password);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  SizedBox(width: 13),
-                ],
-              ), 
-            ],
-          ),
-        ),
-      )
-    );
-  }
-
-  void _startCountdown() {
-    setState(() {
-      _countdown = 90;
-    });
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (_countdown == 0) {
-        timer.cancel();
-      } else {
-        setState(() {
-          _countdown--;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _countdownTimer?.cancel();
-    super.dispose();
-  } */
-
-  void _sendVerificationEmail() async {
+    void _sendVerificationEmail() async {
     try {
       if (_user != null && !_user!.emailVerified) {
         await _user!.sendEmailVerification();
@@ -347,21 +176,6 @@ class ProfilePageState extends State<ProfilePage> {
                       color: Colors.white,
                   ),
                 ),
-                /*TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    await Future.delayed(Duration(milliseconds: 100));
-                    _changeEmail();
-                  },
-                  child: Text(
-                    'Not your email?',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ), */
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () async {
@@ -403,33 +217,16 @@ class ProfilePageState extends State<ProfilePage> {
                 ),
                 SizedBox(height: 0),
                 TextButton(
-                  onPressed: /*_countdown == 0 ? () {*/
-                    _sendVerificationEmail,
-                    //_startCountdown();
-                  //} : null, 
+                  onPressed: _sendVerificationEmail,
                   child: Text(
                     'Did not receive an email? Resend',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      fontWeight: /*_countdown == 0
-                      ?*/ FontWeight.w600, //: FontWeight.w300,
-                      color: /*_countdown == 0 
-                      ?*/ Theme.of(context).primaryColor, //: Colors.white,
-                      /*decoration: _countdown == 0
-                      ? TextDecoration.underline, : null*/
+                      fontWeight: FontWeight.w600, 
+                      color: Theme.of(context).primaryColor, 
                     ),
                   ),
                 ),
-                /*Text(
-                  _countdown == 0
-                  ? ''
-                  : 'available in $_countdown seconds',
-                  style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
-                    ),
-                )*/
               ],
             ),
           ),
