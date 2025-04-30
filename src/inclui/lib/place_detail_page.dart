@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:inclui/profile_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:inclui/report_panel.dart';
 
 class PlaceDetailPage extends StatelessWidget {
   final String placeId;
@@ -49,24 +50,41 @@ class PlaceDetailPage extends StatelessWidget {
           style: GoogleFonts.inter(),
         ),
         leading: BackButton(),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey[300],
+            height: 1.0,
+          ),
+        ),
       ),
       body: FutureBuilder<String?>(
         future: fetchPlacePhotoUrl(placeId),
         builder: (context, snapshot) {
+          final imageUrl = snapshot.data;
+
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasData && snapshot.data != null) {
-            return Column(
+          }
+
+          return SingleChildScrollView(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Image.network(
-                    snapshot.data!,
-                    fit: BoxFit.cover,
-                    height: 250,
-                  ),
-                ),
+                if (imageUrl != null)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        height: 200,
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
@@ -86,34 +104,9 @@ class PlaceDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (!verified)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Add your report issue logic here
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(
-                              Theme.of(context).primaryColor),
-                          shape: WidgetStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          'Report Issues',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+                if (verified)
+                  ReportIssueSection(
+                    placeId: placeId,
                   )
                 else
                   Padding(
@@ -138,8 +131,7 @@ class PlaceDetailPage extends StatelessWidget {
                                 'In order to place reviews, you must be logged in and verified',
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade500,
+                                  color: Colors.grey.shade600,
                                 ),
                                 textAlign: TextAlign.left,
                               ),
@@ -150,16 +142,8 @@ class PlaceDetailPage extends StatelessWidget {
                     ),
                   ),
               ],
-            );
-          } else {
-            return Center(
-              child: Text(
-                'No image available\n\nPlace ID: $placeId',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 14),
-              ),
-            );
-          }
+            ),
+          );
         },
       ),
     );
