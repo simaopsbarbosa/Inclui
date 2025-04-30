@@ -22,7 +22,6 @@ Future<Position> _determinePosition() async {
 }
 
 class HomePage extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Position>(
@@ -47,6 +46,7 @@ class HomePage extends StatelessWidget {
               target: LatLng(userLocation.latitude, userLocation.longitude),
               zoom: 14.0,
             ),
+            myLocationEnabled: true,
           );
         } else {
           return Center(child: Text('No location data available'));
