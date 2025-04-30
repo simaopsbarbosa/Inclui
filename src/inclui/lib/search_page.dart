@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:inclui/place_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -58,6 +59,7 @@ class SearchPageState extends State<SearchPage> {
             return {
               'name': p['structured_formatting']['main_text'] as String,
               'address': p['description'] as String,
+              'placeId': p['place_id'] as String,
             };
           }).toList();
         });
@@ -105,7 +107,7 @@ class SearchPageState extends State<SearchPage> {
       child: Container(
         color: Colors.white,
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
           child: Column(
             children: [
               Row(
@@ -130,12 +132,12 @@ class SearchPageState extends State<SearchPage> {
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: Colors.grey.shade400, width: 1.0),
+                                color: Colors.grey.shade300, width: 1.0),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: Colors.grey.shade400, width: 2.0),
+                                color: Colors.grey.shade300, width: 2.0),
                           ),
                         ),
                         onChanged: (value) => _onSearchChanged(),
@@ -295,38 +297,26 @@ class SearchPageState extends State<SearchPage> {
                         child: Column(
                           children: [
                             ListTile(
+                              onTap: () {
+                                final placeId = prediction['placeId'];
+                                final placeName = prediction['name'];
+                                final placeAddr = prediction['address'];
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PlaceDetailPage(
+                                      placeId: placeId!,
+                                      placeName: placeName!,
+                                      placeAddr: placeAddr!,
+                                    ),
+                                  ),
+                                );
+                              },
                               leading: Icon(Icons.place,
                                   color: Theme.of(context).primaryColor),
                               title: Text(prediction['name'] ?? ''),
                               subtitle: Text(prediction['address'] ?? ''),
                             ),
-                            // Padding(
-                            //   padding: const EdgeInsets.all(8.0),
-                            //   child: SizedBox(
-                            //     width: double.infinity,
-                            //     child: TextButton(
-                            //       onPressed: () {
-                            //         // TODO: vai ser aqui a logica de pagina de report
-                            //       },
-                            //       style: ButtonStyle(
-                            //         shape: WidgetStateProperty.all(
-                            //           RoundedRectangleBorder(
-                            //             borderRadius: BorderRadius.circular(16),
-                            //           ),
-                            //         ),
-                            //         backgroundColor: WidgetStateProperty.all(
-                            //             Theme.of(context).primaryColor),
-                            //       ),
-                            //       child: Text(
-                            //         'Report Issues',
-                            //         style: TextStyle(
-                            //           color: Colors.white,
-                            //           fontSize: 16,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
