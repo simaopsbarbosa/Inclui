@@ -25,7 +25,6 @@ class ProfilePageState extends State<ProfilePage> {
   String? _errorMessage;
   int _countdown = 0;
   Timer? _countdownTimer;
-  final int timerDuration = 60;
 
   @override
   void initState() {
@@ -44,50 +43,13 @@ class ProfilePageState extends State<ProfilePage> {
 
       if (user != null) {
         _fetchUserData(user.uid);
-        _loadCooldown();
       }
     });
 
     if (_user != null) {
       _fetchUserData(_user!.uid);
-      _loadCooldown();
     }
   }
-
-  Future<void> _loadCooldown() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastSentTime = prefs.getInt('lastVerificationEmailTime') ?? 0;
-    final currentTime = DateTime.now().millisecondsSinceEpoch;
-
-    if (lastSentTime > 0) {
-      final elapsedSeconds = (currentTime - lastSentTime) ~/ 1000;
-      if (elapsedSeconds < timerDuration) {
-        setState(() {
-          _countdown = timerDuration - elapsedSeconds;
-        });
-        _startCountdown();
-      }
-    }
-  }
-
-  void _startCountdown() {
-    _countdownTimer?.cancel();
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (_countdown <= 0) {
-        timer.cancel();
-      } else {
-        setState(() => _countdown--);
-      }
-    });
-  }
-
-
-@override
-void dispose() {
-  _countdownTimer?.cancel();
-  super.dispose();
-}
-
 
   Future<void> _fetchUserData(String uid) async {
     try {
@@ -318,18 +280,9 @@ void dispose() {
   } */
 
   void _sendVerificationEmail() async {
-    if (_countdown > 0) return; // verifica se o timer já está ativo
-
     try {
       if (_user != null && !_user!.emailVerified) {
         await _user!.sendEmailVerification();
-        final currentTime = DateTime.now().millisecondsSinceEpoch;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('lastVerificationEmailTime', currentTime);
-
-        setState(() => _countdown = timerDuration);
-        _startCountdown(); //reeinicia o timer
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Verification email sent.'),
@@ -343,110 +296,146 @@ void dispose() {
     }
   }
 
+
   String maskEmail(String email) {
     final parts = email.split('@');
-    final visible = parts[0].substring(0, 2);
+    final visible = parts[0].substring(0,2);
     final masked = '*' * (parts[0].length - 2);
     return '$visible$masked@${parts[1]}';
   }
 
-void _verifyAccountAction() async {
-  final user = FirebaseAuth.instance.currentUser;
-  final email = user?.email ?? '';
-  final maskedEmail = maskEmail(email);
+  void _verifyAccountAction() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final email = user?.email?? '';
+    final maskedEmail = maskEmail(email);
 
-  showDialog(
-    context: context,
-    builder: (context) => Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: Color(0xFF0A1128),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "Verification Email",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              "We have sent a verification link to:",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w300,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              maskedEmail,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await user?.reload();
-                if (user?.emailVerified ?? false) {
-                  Navigator.pop(context);
-                  setState(() {});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Verification successful."),
-                      backgroundColor: Theme.of(context).primaryColor,
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Still not verified"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Verify"),
-            ),
-            SizedBox(height: 10),
-            TextButton(
-              onPressed: _countdown > 0 ? null : () {
-                _sendVerificationEmail();
-                Navigator.pop(context);
-              },
-              child: Text(
-                _countdown > 0
-                    ? 'Wait $_countdown seconds to resend'
-                    : 'Resend verification email',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _countdown > 0
-                      ? Colors.grey
-                      : Theme.of(context).primaryColor,
+    showDialog(
+      context: context, 
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Color(0xFF0A1128),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Verification Email",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                  ),
                 ),
-              ),
+                Text(
+                  "We have sent a verification link to:",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  maskedEmail,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                  ),
+                ),
+                /*TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await Future.delayed(Duration(milliseconds: 100));
+                    _changeEmail();
+                  },
+                  child: Text(
+                    'Not your email?',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ), */
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    await _user?.reload();
+                    var updatedUser = FirebaseAuth.instance.currentUser;
+                    if (updatedUser?.emailVerified == true) {
+                      setState(() {
+                        _user = updatedUser;
+                      });
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Verification successful."),
+                          backgroundColor: Theme.of(context).primaryColor,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Still not verified"),
+                          backgroundColor: Colors.red,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    'Verify',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 0),
+                TextButton(
+                  onPressed: /*_countdown == 0 ? () {*/
+                    _sendVerificationEmail,
+                    //_startCountdown();
+                  //} : null, 
+                  child: Text(
+                    'Did not receive an email? Resend',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: /*_countdown == 0
+                      ?*/ FontWeight.w600, //: FontWeight.w300,
+                      color: /*_countdown == 0 
+                      ?*/ Theme.of(context).primaryColor, //: Colors.white,
+                      /*decoration: _countdown == 0
+                      ? TextDecoration.underline, : null*/
+                    ),
+                  ),
+                ),
+                /*Text(
+                  _countdown == 0
+                  ? ''
+                  : 'available in $_countdown seconds',
+                  style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                    ),
+                )*/
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
-}
+    );
+  } 
 
   @override
   Widget build(BuildContext context) {
@@ -456,8 +445,8 @@ void _verifyAccountAction() async {
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : (_user != null
-              ? Column(
+          : (_user != null 
+              ? Column (
                   children: [
                     _buildUserProfile(),
                     if (!_user!.emailVerified) _verifyAccount(),
@@ -488,7 +477,7 @@ void _verifyAccountAction() async {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Row (
                   children: [
                     Text(
                       _userName ?? 'Loading...',
@@ -500,8 +489,8 @@ void _verifyAccountAction() async {
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_user != null && _user?.emailVerified == true) ...[
-                      SizedBox(width: 5),
-                      Align(
+                      SizedBox(width: 5), 
+                      Align (
                         alignment: Alignment.bottomCenter,
                         child: Icon(
                           Icons.verified,
@@ -563,74 +552,60 @@ void _verifyAccountAction() async {
     );
   }
 
-Widget _verifyAccount() {
-  return Container(
-    width: double.infinity,
-    margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
-    padding: EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Color(0xFF0A1128),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: Color(0xFF242B41),
-        width: 1,
+  Widget _verifyAccount() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Color(0xFF0A1128),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Color(0xFF242B41),
+          width: 1,
+        ),
       ),
-    ),
-    child: Row(
-      children: [
-        Icon(
-          Icons.warning_rounded,
-          color: Colors.pinkAccent,
-          size: 35,
-        ),
-        SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your account needs to be verified in order to leave reviews.',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.white,
-                ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warning_rounded,
+            color: Colors.pinkAccent,
+            size: 35,
+          ),
+          SizedBox(width: 13),
+          Expanded (
+            child: Text(
+              'Your account needs to be verified in order to leave reviews.',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w300,
+                color: Colors.white,
               ),
-              if (_countdown > 0)
-                Text(
-                  'Wait $_countdown seconds to resend',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: Colors.grey[400],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: _countdown > 0 ? null : () {
-            _sendVerificationEmail();
-            _verifyAccountAction();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _countdown > 0
-                ? Colors.grey
-                : Theme.of(context).primaryColor,
-            foregroundColor: Colors.white,
-          ),
-          child: Text(
-            _countdown > 0 ? 'Wait' : 'Verify Now',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          SizedBox(width: 12),
+          ElevatedButton(
+            onPressed:() async {
+              _sendVerificationEmail();
+              _verifyAccountAction();
+              //_startCountdown();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Verify Now',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildLoggedOutView() {
     return Center(
