@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -102,18 +103,50 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
                   TextButton(
                     onPressed: () async {
                       if (tempSelected == null) return;
-                      // 1. update local state
-                      setState(() => selectedIssue = tempSelected);
-                      // 2. push to Firebase
-                      final reportsRef =
-                          FirebaseDatabase.instance.ref().child('reports');
-                      await reportsRef.push().set({
-                        'placeId': widget.placeId,
-                        'issue': tempSelected,
-                        'timestamp': ServerValue.timestamp,
-                        'email': getUserEmail(),
-                      });
-                      Navigator.of(context).pop();
+
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user == null) return;
+
+                      final userId = user.uid;
+                      final email = getUserEmail();
+                      final reportRef = FirebaseDatabase.instance.ref(
+                          "reports/${widget.placeId}/$tempSelected/$userId");
+
+                      try {
+                        final snapshot = await reportRef.get();
+                        if (snapshot.exists) {
+                          // Duplicate found
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'You have already reported this issue for this place.',
+                                style: GoogleFonts.inter(),
+                              ),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                          return;
+                        }
+
+                        // Not yet reported — push it
+                        await reportRef.set({
+                          'timestamp': ServerValue.timestamp,
+                          'email': email,
+                        });
+
+                        setState(() => selectedIssue = tempSelected);
+                        Navigator.of(context).pop();
+                      } on FirebaseException catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Failed to send report: ${e.message}',
+                              style: GoogleFonts.inter(),
+                            ),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
                     },
                     style: TextButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
