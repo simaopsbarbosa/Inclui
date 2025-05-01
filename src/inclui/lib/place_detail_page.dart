@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:inclui/profile_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclui/report_panel.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class PlaceDetailPage extends StatelessWidget {
   final String placeId;
@@ -103,6 +104,79 @@ class PlaceDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                FutureBuilder<DataSnapshot>(
+                  future:
+                      FirebaseDatabase.instance.ref('reports/$placeId').get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: LinearProgressIndicator(),
+                      );
+                    }
+
+                    if (!snapshot.hasData || snapshot.data?.value == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final data = snapshot.data!.value as Map<dynamic, dynamic>;
+                    final issueCounts = <String, int>{};
+
+                    for (final entry in data.entries) {
+                      final issue = entry.key as String;
+                      final userMap = entry.value as Map<dynamic, dynamic>;
+                      issueCounts[issue] = userMap.length;
+                    }
+
+                    final totalReports =
+                        issueCounts.values.fold(0, (a, b) => a + b);
+
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD72B5E),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$totalReports Reports',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Accessibility Issues:',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ...issueCounts.entries.map((entry) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    '(${entry.value}) ${entry.key}.',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 if (verified)
                   ReportIssueSection(

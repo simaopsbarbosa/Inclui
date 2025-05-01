@@ -115,7 +115,6 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
                       try {
                         final snapshot = await reportRef.get();
                         if (snapshot.exists) {
-                          // Duplicate found
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
@@ -128,13 +127,23 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
                           return;
                         }
 
-                        // Not yet reported — push it
                         await reportRef.set({
                           'timestamp': ServerValue.timestamp,
                           'email': email,
                         });
 
                         setState(() => selectedIssue = tempSelected);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Report submitted successfully.',
+                              style: GoogleFonts.inter(),
+                            ),
+                            backgroundColor: Theme.of(context).primaryColor,
+                          ),
+                        );
+
                         Navigator.of(context).pop();
                       } on FirebaseException catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
