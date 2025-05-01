@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
@@ -22,9 +20,6 @@ class ProfilePageState extends State<ProfilePage> {
   String? _userName;
   String? _createdAt;
   bool _isLoading = true;
-  String? _errorMessage;
-  int _countdown = 0;
-  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -108,7 +103,7 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-    void _sendVerificationEmail() async {
+  void _sendVerificationEmail() async {
     try {
       if (_user != null && !_user!.emailVerified) {
         await _user!.sendEmailVerification();
@@ -125,125 +120,124 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-
   String maskEmail(String email) {
     final parts = email.split('@');
-    final visible = parts[0].substring(0,2);
+    final visible = parts[0].substring(0, 2);
     final masked = '*' * (parts[0].length - 2);
     return '$visible$masked@${parts[1]}';
   }
 
   void _verifyAccountAction() async {
     final user = FirebaseAuth.instance.currentUser;
-    final email = user?.email?? '';
+    final email = user?.email ?? '';
     final maskedEmail = maskEmail(email);
 
     showDialog(
-      context: context, 
+      context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Color(0xFF0A1128),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "Verification Email",
-                  textAlign: TextAlign.center,
+        backgroundColor: Colors.grey.shade300,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Verification Email",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              Text(
+                "We have sent a verification link to:",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                maskedEmail,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  await _user?.reload();
+                  var updatedUser = FirebaseAuth.instance.currentUser;
+                  if (updatedUser?.emailVerified == true) {
+                    setState(() {
+                      _user = updatedUser;
+                    });
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Verification successful."),
+                        backgroundColor: Theme.of(context).primaryColor,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Still not verified"),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  'Verify',
                   style: GoogleFonts.inter(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Text(
-                  "We have sent a verification link to:",
-                  textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 0),
+              TextButton(
+                onPressed: _sendVerificationEmail,
+                child: Text(
+                  'Did not receive an email? Resend',
                   style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
-                SizedBox(height: 16),
-                Text(
-                  maskedEmail,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    await _user?.reload();
-                    var updatedUser = FirebaseAuth.instance.currentUser;
-                    if (updatedUser?.emailVerified == true) {
-                      setState(() {
-                        _user = updatedUser;
-                      });
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Verification successful."),
-                          backgroundColor: Theme.of(context).primaryColor,
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Still not verified"),
-                          backgroundColor: Colors.red,
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    'Verify',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 0),
-                TextButton(
-                  onPressed: _sendVerificationEmail,
-                  child: Text(
-                    'Did not receive an email? Resend',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600, 
-                      color: Theme.of(context).primaryColor, 
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
     );
-  } 
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: Colors.white,
       child: _isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : (_user != null 
-              ? Column (
+          : (_user != null
+              ? Column(
                   children: [
                     _buildUserProfile(),
                     if (!_user!.emailVerified) _verifyAccount(),
@@ -259,10 +253,10 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.all(20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Color(0xFF0A1128),
+        color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Color(0xFF242B41),
+          color: Colors.grey.shade300,
           width: 1,
         ),
       ),
@@ -274,20 +268,20 @@ class ProfilePageState extends State<ProfilePage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row (
+                Row(
                   children: [
                     Text(
                       _userName ?? 'Loading...',
                       style: GoogleFonts.inter(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_user != null && _user?.emailVerified == true) ...[
-                      SizedBox(width: 5), 
-                      Align (
+                      SizedBox(width: 5),
+                      Align(
                         alignment: Alignment.bottomCenter,
                         child: Icon(
                           Icons.verified,
@@ -303,7 +297,7 @@ class ProfilePageState extends State<ProfilePage> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w300,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -314,7 +308,7 @@ class ProfilePageState extends State<ProfilePage> {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -323,7 +317,7 @@ class ProfilePageState extends State<ProfilePage> {
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -334,13 +328,14 @@ class ProfilePageState extends State<ProfilePage> {
             onPressed: _signOut,
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
+              foregroundColor: Colors.black,
             ),
             child: Text(
               'Logout',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
           ),
@@ -355,10 +350,10 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Color(0xFF0A1128),
+        color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Color(0xFF242B41),
+          color: Colors.grey.shade300,
           width: 1,
         ),
       ),
@@ -370,19 +365,19 @@ class ProfilePageState extends State<ProfilePage> {
             size: 35,
           ),
           SizedBox(width: 13),
-          Expanded (
+          Expanded(
             child: Text(
               'Your account needs to be verified in order to leave reviews.',
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w300,
-                color: Colors.white,
+                color: Colors.black,
               ),
             ),
           ),
           SizedBox(width: 12),
           ElevatedButton(
-            onPressed:() async {
+            onPressed: () async {
               _sendVerificationEmail();
               _verifyAccountAction();
               //_startCountdown();
@@ -415,7 +410,7 @@ class ProfilePageState extends State<ProfilePage> {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           SizedBox(height: 20),

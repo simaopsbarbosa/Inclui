@@ -86,6 +86,7 @@ class LoginPageState extends State<LoginPage> {
     final isRegistering = _isRegistering;
 
     return Scaffold(
+      backgroundColor: const Color(0xff060A21),
       appBar: AppBar(
         title: Text(
           isRegistering ? 'Register' : 'Login',
@@ -95,8 +96,8 @@ class LoginPageState extends State<LoginPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.transparent,
-        iconTheme: IconThemeData(color: Colors.white),
+        backgroundColor: const Color(0xff060A21),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32.0),
@@ -123,7 +124,7 @@ class LoginPageState extends State<LoginPage> {
                     borderSide: BorderSide.none,
                   ),
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -144,7 +145,7 @@ class LoginPageState extends State<LoginPage> {
                   borderSide: BorderSide.none,
                 ),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -172,7 +173,7 @@ class LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               ),
               obscureText: true,
             ),
@@ -201,7 +202,7 @@ class LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 ),
                 obscureText: true,
               ),
