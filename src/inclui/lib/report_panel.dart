@@ -6,10 +6,12 @@ import 'package:inclui/profile_page.dart';
 
 class ReportIssueSection extends StatefulWidget {
   final String placeId;
+  final VoidCallback? onReport;
 
   const ReportIssueSection({
     super.key,
     required this.placeId,
+    this.onReport,
   });
 
   @override
@@ -19,7 +21,6 @@ class ReportIssueSection extends StatefulWidget {
 class ReportIssueSectionState extends State<ReportIssueSection> {
   final List<String> issues = [
     'Not wheelchair accessible',
-    'Lack of wheelchair ramps',
     'Elevator out of service',
     'No braille option',
     'No non-binary bathroom',
@@ -133,6 +134,7 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
                         });
 
                         setState(() => selectedIssue = tempSelected);
+                        widget.onReport?.call();
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

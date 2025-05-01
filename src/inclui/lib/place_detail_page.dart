@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:inclui/report_panel.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-class PlaceDetailPage extends StatelessWidget {
+class PlaceDetailPage extends StatefulWidget {
   final String placeId;
   final String placeName;
   final String placeAddr;
@@ -19,10 +19,25 @@ class PlaceDetailPage extends StatelessWidget {
     required this.placeAddr,
   });
 
-  Future<String?> fetchPlacePhotoUrl(String placeId) async {
+  @override
+  _PlaceDetailPageState createState() => _PlaceDetailPageState();
+}
+
+class _PlaceDetailPageState extends State<PlaceDetailPage> {
+  late Future<String?> _photoFuture;
+  late Future<DataSnapshot> _reportsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoFuture = fetchPlacePhotoUrl();
+    _reportsFuture = _loadReports();
+  }
+
+  Future<String?> fetchPlacePhotoUrl() async {
     final detailsRes = await http.get(Uri.parse(
       'https://maps.googleapis.com/maps/api/place/details/json'
-      '?place_id=$placeId&fields=photo&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
+      '?place_id=${widget.placeId}&fields=photo&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}',
     ));
 
     if (detailsRes.statusCode == 200) {
@@ -37,6 +52,10 @@ class PlaceDetailPage extends StatelessWidget {
       }
     }
     return null;
+  }
+
+  Future<DataSnapshot> _loadReports() {
+    return FirebaseDatabase.instance.ref('reports/${widget.placeId}').get();
   }
 
   @override
@@ -60,14 +79,12 @@ class PlaceDetailPage extends StatelessWidget {
         ),
       ),
       body: FutureBuilder<String?>(
-        future: fetchPlacePhotoUrl(placeId),
-        builder: (context, snapshot) {
-          final imageUrl = snapshot.data;
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
+        future: _photoFuture,
+        builder: (context, photoSnap) {
+          if (photoSnap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
+          final imageUrl = photoSnap.data;
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,46 +109,40 @@ class PlaceDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        placeName,
+                        widget.placeName,
                         style: GoogleFonts.inter(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        placeAddr,
+                        widget.placeAddr,
                         style: GoogleFonts.inter(fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 FutureBuilder<DataSnapshot>(
-                  future:
-                      FirebaseDatabase.instance.ref('reports/$placeId').get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                  future: _reportsFuture,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
                       return const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: LinearProgressIndicator(),
                       );
                     }
-
-                    if (!snapshot.hasData || snapshot.data?.value == null) {
+                    if (!snap.hasData || snap.data!.value == null) {
                       return const SizedBox.shrink();
                     }
-
-                    final data = snapshot.data!.value as Map<dynamic, dynamic>;
+                    final data = snap.data!.value as Map<dynamic, dynamic>;
                     final issueCounts = <String, int>{};
-
                     for (final entry in data.entries) {
                       final issue = entry.key as String;
                       final userMap = entry.value as Map<dynamic, dynamic>;
                       issueCounts[issue] = userMap.length;
                     }
-
                     final totalReports =
                         issueCounts.values.fold(0, (a, b) => a + b);
-
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
                       child: Container(
@@ -180,7 +191,12 @@ class PlaceDetailPage extends StatelessWidget {
                 ),
                 if (verified)
                   ReportIssueSection(
-                    placeId: placeId,
+                    placeId: widget.placeId,
+                    onReport: () {
+                      setState(() {
+                        _reportsFuture = _loadReports();
+                      });
+                    },
                   )
                 else
                   Padding(

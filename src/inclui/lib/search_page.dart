@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-// import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,7 +12,6 @@ class SearchPage extends StatefulWidget {
 }
 
 class SearchPageState extends State<SearchPage> {
-  // final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
@@ -25,7 +23,18 @@ class SearchPageState extends State<SearchPage> {
 
   double _maxDistance = 1000.0;
   String? _selectedIssueType;
-  final List<String> _issueTypes = ['wheelchair', 'elevator', 'braille'];
+  final List<String> _issueTypes = [
+    'Not wheelchair accessible',
+    'Elevator out of service',
+    'No braille option',
+    'No non-binary bathroom',
+    'Poor signage contrast',
+    'Inaccessible restroom facilities',
+    'No seating for elderly',
+    'Too noisy',
+    'Heavy doors',
+    'Flashing Lights',
+  ];
 
   @override
   void initState() {
