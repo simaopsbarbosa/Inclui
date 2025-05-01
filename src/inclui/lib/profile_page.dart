@@ -451,3 +451,13 @@ String formatDate(String isoDate) {
     return '';
   }
 }
+
+bool isEmailVerified() {
+  final user = FirebaseAuth.instance.currentUser;
+  return user?.emailVerified ?? false;
+}
+
+String? getUserEmail() {
+  final user = FirebaseAuth.instance.currentUser;
+  return user?.email;
+}
