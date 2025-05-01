@@ -149,10 +149,6 @@ class HomeScreenState extends State<HomeScreen> {
               icon: Icon(Icons.search_rounded),
               label: 'Search',
             ),
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.add_box_rounded),
-            //   label: 'Report',
-            // ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_rounded),
               label: 'Profile',
