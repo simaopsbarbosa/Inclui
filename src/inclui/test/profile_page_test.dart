@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inclui/profile_page.dart';
+import 'package:inclui/screens/profile_page.dart';
 
 void main() {
   group('formatDate', () {
