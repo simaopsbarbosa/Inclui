@@ -42,11 +42,11 @@ class HomePage extends StatelessWidget {
         } else if (snapshot.hasData) {
           Position userLocation = snapshot.data!;
           return GoogleMap(
+            myLocationEnabled: true,
             initialCameraPosition: CameraPosition(
               target: LatLng(userLocation.latitude, userLocation.longitude),
-              zoom: 14.0,
+              zoom: 18.0,
             ),
-            myLocationEnabled: true,
           );
         } else {
           return Center(child: Text('No location data available'));

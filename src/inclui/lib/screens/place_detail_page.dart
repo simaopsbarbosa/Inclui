@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:inclui/profile_page.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclui/report_panel.dart';
+import 'package:inclui/screens/report_modal.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:inclui/services/auth_service.dart';
 
 class PlaceDetailPage extends StatefulWidget {
   final String placeId;
@@ -60,7 +60,6 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final verified = isEmailVerified();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -189,7 +188,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                     );
                   },
                 ),
-                if (verified)
+                if (AuthService.isUserVerified())
                   ReportIssueSection(
                     placeId: widget.placeId,
                     onReport: () {

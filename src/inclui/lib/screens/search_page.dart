@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclui/place_detail_page.dart';
+import 'package:inclui/screens/place_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   @override
