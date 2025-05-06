@@ -63,10 +63,11 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        centerTitle: false,
         backgroundColor: Colors.grey[200],
         title: Text(
           'Place Details',
-          style: GoogleFonts.inter(),
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         leading: BackButton(),
         bottom: PreferredSize(
@@ -88,11 +89,15 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const SizedBox(height: 16),
                 if (imageUrl != null)
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16.0),
+                        topRight: Radius.circular(16.0),
+                      ),
                       child: Image.network(
                         imageUrl,
                         fit: BoxFit.cover,
@@ -104,21 +109,36 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                   const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.placeName,
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
+                      borderRadius: imageUrl != null
+                          ? const BorderRadius.only(
+                              bottomLeft: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            )
+                          : BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.placeName,
+                            style: GoogleFonts.inter(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            widget.placeAddr,
+                            style: GoogleFonts.inter(fontSize: 12),
+                          ),
+                        ],
                       ),
-                      Text(
-                        widget.placeAddr,
-                        style: GoogleFonts.inter(fontSize: 12),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
                 FutureBuilder<DataSnapshot>(
@@ -131,7 +151,16 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                       );
                     }
                     if (!snap.hasData || snap.data!.value == null) {
-                      return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          "No reports available",
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
+                        ),
+                      );
                     }
                     final data = snap.data!.value as Map<dynamic, dynamic>;
                     final issueCounts = <String, int>{};
@@ -143,59 +172,39 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                     final totalReports =
                         issueCounts.values.fold(0, (a, b) => a + b);
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD72B5E),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Text(
                               '$totalReports Reports',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.white,
+                                fontSize: 22,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Accessibility Issues:',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ...issueCounts.entries.map((entry) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2),
-                                  child: Text(
-                                    '(${entry.value}) ${entry.key}.',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                )),
-                          ],
-                        ),
+                          ),
+                          Issues(issueCounts: issueCounts),
+                          const SizedBox(height: 16),
+                        ],
                       ),
                     );
                   },
                 ),
                 if (AuthService.isUserVerified())
-                  ReportIssueSection(
-                    placeId: widget.placeId,
-                    onReport: () {
-                      setState(() {
-                        _reportsFuture = _loadReports();
-                      });
-                    },
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    child: ReportIssueSection(
+                      placeId: widget.placeId,
+                      onReport: () {
+                        setState(() {
+                          _reportsFuture = _loadReports();
+                        });
+                      },
+                    ),
                   )
                 else
                   Padding(
@@ -234,6 +243,50 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class Issues extends StatelessWidget {
+  const Issues({
+    super.key,
+    required this.issueCounts,
+  });
+
+  final Map<String, int> issueCounts;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFD72B5E),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Accessibility Issues:',
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...issueCounts.entries.map((entry) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Text(
+                  '(${entry.value}) ${entry.key}.',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              )),
+        ],
       ),
     );
   }

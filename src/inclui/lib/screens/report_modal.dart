@@ -203,26 +203,23 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _showIssueDialog,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 14),
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _showIssueDialog,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(
-            'Report Issues',
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        child: Text(
+          'Report Issues',
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
