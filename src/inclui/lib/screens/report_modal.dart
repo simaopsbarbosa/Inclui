@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:inclui/profile_page.dart';
+import 'package:inclui/services/auth_service.dart';
 
 class ReportIssueSection extends StatefulWidget {
   final String placeId;
@@ -109,7 +109,7 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
                       if (user == null) return;
 
                       final userId = user.uid;
-                      final email = getUserEmail();
+                      final email = AuthService.getUserEmail();
                       final reportRef = FirebaseDatabase.instance.ref(
                           "reports/${widget.placeId}/$tempSelected/$userId");
 

@@ -3,11 +3,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:inclui/search_page.dart';
+import 'package:inclui/screens/search_page.dart';
 import 'firebase_options.dart';
-import 'login_page.dart';
-import 'home_page.dart';
-import 'profile_page.dart';
+import 'screens/login_page.dart';
+import 'screens/home_page.dart';
+import 'screens/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,18 +44,11 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  Widget _getPage(int index) {
-    switch (index) {
-      case 0:
-        return HomePage();
-      case 1:
-        return SearchPage();
-      case 2:
-        return ProfilePage();
-      default:
-        return HomePage();
-    }
-  }
+  late final List<Widget> _pages = [
+    HomePage(),
+    SearchPage(),
+    ProfilePage(),
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -92,7 +85,7 @@ class HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Image.asset(
                 'assets/logo/inclui-b.png',
                 height: 24,
@@ -108,19 +101,22 @@ class HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-            )
+            ),
           ],
         ),
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.0),
+          preferredSize: const Size.fromHeight(1.0),
           child: Container(
             color: Colors.grey[300],
             height: 1.0,
           ),
         ),
       ),
-      body: _getPage(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(
@@ -140,7 +136,7 @@ class HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.w800,
           ),
           iconSize: 32,
-          items: [
+          items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_rounded),
               label: 'Home',

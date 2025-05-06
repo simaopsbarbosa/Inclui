@@ -362,15 +362,14 @@ class ProfilePageState extends State<ProfilePage> {
           Icon(
             Icons.warning_rounded,
             color: Colors.pinkAccent,
-            size: 35,
+            size: 25,
           ),
           SizedBox(width: 13),
           Expanded(
             child: Text(
               'Your account needs to be verified in order to leave reviews.',
               style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w300,
+                fontSize: 14,
                 color: Colors.black,
               ),
             ),
@@ -383,9 +382,9 @@ class ProfilePageState extends State<ProfilePage> {
               //_startCountdown();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-            ),
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 15)),
             child: Text(
               'Verify Now',
               style: GoogleFonts.inter(
@@ -445,14 +444,4 @@ String formatDate(String isoDate) {
   } catch (e) {
     return '';
   }
-}
-
-bool isEmailVerified() {
-  final user = FirebaseAuth.instance.currentUser;
-  return user?.emailVerified ?? false;
-}
-
-String? getUserEmail() {
-  final user = FirebaseAuth.instance.currentUser;
-  return user?.email;
 }
