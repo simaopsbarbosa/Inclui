@@ -134,6 +134,17 @@ class SearchPageState extends State<SearchPage> {
                           hintText: 'Search by place name...',
                           prefixIcon:
                               Icon(Icons.search, color: Colors.grey[600]),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.close,
+                                      color: Colors.grey[600]),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _placePredictions = []);
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                )
+                              : null,
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: EdgeInsets.symmetric(
@@ -149,7 +160,11 @@ class SearchPageState extends State<SearchPage> {
                                 color: Colors.grey.shade300, width: 2.0),
                           ),
                         ),
-                        onChanged: (value) => _onSearchChanged(),
+                        onChanged: (value) {
+                          setState(
+                              () {}); // Refresh UI to show/hide the clear button
+                          _onSearchChanged();
+                        },
                       ),
                     ),
                   ),
@@ -323,7 +338,10 @@ class SearchPageState extends State<SearchPage> {
                               },
                               leading: Icon(Icons.place,
                                   color: Theme.of(context).primaryColor),
-                              title: Text(prediction['name'] ?? ''),
+                              title: Text(prediction['name'] ?? '',
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.bold,
+                                  )),
                               subtitle: Text(prediction['address'] ?? ''),
                             ),
                           ],
