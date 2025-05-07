@@ -23,13 +23,16 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
     'Not wheelchair accessible',
     'Elevator out of service',
     'No braille option',
-    'No non-binary bathroom',
     'Poor signage contrast',
+    'Flashing Lights',
+    'No non-binary bathroom',
     'Inaccessible restroom facilities',
     'No seating for elderly',
-    'Too noisy',
     'Heavy doors',
-    'Flashing Lights',
+    'Too noisy',
+    'No audio description',
+    'No ASL interpreter',
+
   ];
 
   String? selectedIssue;

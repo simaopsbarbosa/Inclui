@@ -2,8 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:inclui/widgets/circle_icon.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -52,27 +54,9 @@ class ProfilePageState extends State<ProfilePage> {
       final data = Map<String, dynamic>.from(snapshot.value as Map);
       setState(() {
         _userName = data['name']?.toString();
-        _createdAt = data['createdAt']?.toString();
         _isLoading = false;
       });
     }
-  }
-
-  void _signOut() async {
-    await _auth.signOut();
-
-    setState(() {
-      _isLoading = false;
-      _user = null;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Logged out'),
-        backgroundColor: Theme.of(context).primaryColor,
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   void _redirectToLogin() {
@@ -233,7 +217,7 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Color(0xffF2F2F2),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.grey.shade300,
@@ -268,7 +252,7 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.all(20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Color(0xffF2F2F2),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.grey.shade300,
@@ -316,7 +300,40 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 50),
+                SizedBox(height: 15),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: CircleIcon(
+                        icon: FontAwesomeIcons.wheelchair,
+                        size: 55,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: CircleIcon(
+                        icon: FontAwesomeIcons.elevator,
+                        size: 55,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: CircleIcon(
+                        icon: FontAwesomeIcons.restroom,
+                        size: 55,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: CircleIcon(
+                        icon: FontAwesomeIcons.signHanging,
+                        size: 55,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 15),
                 if (_createdAt != null)
                   Text(
                     formatDate(_createdAt!),
@@ -337,21 +354,6 @@ class ProfilePageState extends State<ProfilePage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: _signOut,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.black,
-            ),
-            child: Text(
-              'Logout',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
             ),
           ),
         ],

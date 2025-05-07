@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:inclui/screens/search_page.dart';
+import 'package:inclui/services/auth_service.dart';
 import 'firebase_options.dart';
 import 'screens/login_page.dart';
 import 'screens/home_page.dart';
@@ -65,6 +66,7 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _handleAuthButton() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      _signOut();
       setState(() {
         _selectedIndex = 2;
       });
@@ -79,6 +81,18 @@ class HomeScreenState extends State<HomeScreen> {
         });
       }
     }
+  }
+
+  void _signOut() async {
+    AuthService.signOut();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Logged out'),
+        backgroundColor: Theme.of(context).primaryColor,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -102,7 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: _handleAuthButton,
               child: Text(
-                FirebaseAuth.instance.currentUser != null ? 'Profile' : 'Login',
+                FirebaseAuth.instance.currentUser != null ? 'Logout' : 'Login',
                 style: GoogleFonts.inter(
                   color: Theme.of(context).primaryColor,
                   fontSize: 16,
