@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -48,35 +47,14 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _fetchUserData(String uid) async {
-    try {
-      // check if user data is available in SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      String? cachedUserName = prefs.getString('userName');
-      String? cachedCreatedAt = prefs.getString('createdAt');
-
-      if (cachedUserName != null && cachedCreatedAt != null) {
-        setState(() {
-          _userName = cachedUserName;
-          _createdAt = cachedCreatedAt;
-          _isLoading = false;
-        });
-      } else {
-        // fetch from Firebase if not cached
-        final snapshot = await _db.child('users').child(uid).get();
-        if (snapshot.exists) {
-          final data = Map<String, dynamic>.from(snapshot.value as Map);
-          setState(() {
-            _userName = data['name']?.toString();
-            _createdAt = data['createdAt']?.toString();
-            _isLoading = false;
-          });
-
-          prefs.setString('userName', _userName!);
-          prefs.setString('createdAt', _createdAt!);
-        }
-      }
-    } catch (e) {
-      print('Error fetching user data: $e');
+    final snapshot = await _db.child('users').child(uid).get();
+    if (snapshot.exists) {
+      final data = Map<String, dynamic>.from(snapshot.value as Map);
+      setState(() {
+        _userName = data['name']?.toString();
+        _createdAt = data['createdAt']?.toString();
+        _isLoading = false;
+      });
     }
   }
 
