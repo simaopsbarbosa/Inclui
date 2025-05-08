@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:inclui/constants.dart';
 import 'package:inclui/widgets/report_modal.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:inclui/services/auth_service.dart';
@@ -196,7 +198,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                 if (AuthService.isUserVerified())
                   Padding(
                     padding:
-                        const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                        const EdgeInsets.only(left: 16, right: 16, bottom: 48),
                     child: ReportIssueSection(
                       placeId: widget.placeId,
                       onReport: () {
@@ -260,32 +262,71 @@ class Issues extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFD72B5E),
+        color: const Color(0x33D72B5E),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Accessibility Issues:',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.white,
+          Row(
+            children: [
+              Icon(
+                FontAwesomeIcons.triangleExclamation,
+                color: Color(0xFFD72B5E),
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Accessibility Issues:',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...(issueCounts.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value)))
+              .map(
+            (entry) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    accessibilityIssues[entry.key] ??
+                        FontAwesomeIcons.solidCircleQuestion,
+                    color: Color(0xFFD72B5E),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 12),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '(${entry.value})',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' ${entry.key}',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          ...issueCounts.entries.map((entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(
-                  '(${entry.value}) ${entry.key}.',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
-              )),
         ],
       ),
     );
