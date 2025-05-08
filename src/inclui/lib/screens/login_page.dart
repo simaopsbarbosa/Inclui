@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 
@@ -9,7 +8,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
-  final _db = FirebaseDatabase.instance.ref();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -42,15 +40,7 @@ class LoginPageState extends State<LoginPage> {
     if (name.isEmpty) return _setError("Please enter your name");
 
     try {
-      await AuthService.signUp(email, password);
-      final user = AuthService.currentUser;
-
-      await _db.child('users/${user!.uid}').set({
-        'name': name,
-        'email': email,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
+      await AuthService.signUp(email, password, name);
       _showSnackbar('Registration successful');
       Navigator.pop(context, true);
     } catch (e) {

@@ -18,10 +18,28 @@ class AuthService {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  static Future<void> signUp(String email, String password) async {
-    await _auth.createUserWithEmailAndPassword(
-        email: email, password: password);
-    await sendEmailVerification();
+  static Future<void> signUp(String email, String password, String name) async {
+    try {
+      final UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        final now = DateTime.now().toUtc().toIso8601String();
+        await _database.ref('users/${user.uid}').set({
+          'name': name,
+          'email': email,
+          'createdAt': now,
+        });
+      }
+    } catch (e) {
+      print('Error during sign-up: $e');
+      rethrow;
+    }
   }
 
   static Future<void> sendEmailVerification() async {
