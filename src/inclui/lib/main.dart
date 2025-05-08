@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        primarySwatch: Colors.blue,
         primaryColor: Color(0xFF006CFF),
         canvasColor: Colors.grey[200],
         fontFamily: GoogleFonts.inter().fontFamily,
@@ -66,7 +67,15 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _handleAuthButton() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      _signOut();
+      AuthService.signOut();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logged out'),
+          backgroundColor: Theme.of(context).primaryColor,
+          duration: Duration(seconds: 2),
+        ),
+      );
       setState(() {
         _selectedIndex = 2;
       });
@@ -81,18 +90,6 @@ class HomeScreenState extends State<HomeScreen> {
         });
       }
     }
-  }
-
-  void _signOut() async {
-    AuthService.signOut();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Logged out'),
-        backgroundColor: Theme.of(context).primaryColor,
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
