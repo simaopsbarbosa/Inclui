@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:inclui/constants.dart';
+import 'package:inclui/services/auth_service.dart';
 import 'package:inclui/widgets/circle_icon.dart';
 import 'package:inclui/widgets/user_preferences_modal.dart';
 import 'login_page.dart';
@@ -14,9 +16,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
-
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   late User? _user;
   late final Stream<User?> _authStateChanges;
   String? _userName;
@@ -54,6 +55,7 @@ class ProfilePageState extends State<ProfilePage> {
       final data = Map<String, dynamic>.from(snapshot.value as Map);
       setState(() {
         _userName = data['name']?.toString();
+        _createdAt = data['createdAt']?.toString();
         _isLoading = false;
       });
     }
@@ -91,7 +93,7 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   void _verifyAccountAction() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.currentUser;
     final email = user?.email ?? '';
     final maskedEmail = maskEmail(email);
 
@@ -137,7 +139,7 @@ class ProfilePageState extends State<ProfilePage> {
               ElevatedButton(
                 onPressed: () async {
                   await _user?.reload();
-                  var updatedUser = FirebaseAuth.instance.currentUser;
+                  var updatedUser = AuthService.currentUser;
                   if (updatedUser?.emailVerified == true) {
                     setState(() {
                       _user = updatedUser;
@@ -204,7 +206,11 @@ class ProfilePageState extends State<ProfilePage> {
                   children: [
                     _buildUserProfile(),
                     if (!_user!.emailVerified) _verifyAccount(),
-                    UserPreferencesModal(),
+                    UserPreferencesModal(
+                      onPreferencesUpdated: () {
+                        setState(() {});
+                      },
+                    ),
                   ],
                 )
               : _buildLoggedOutView()),
@@ -266,37 +272,37 @@ class ProfilePageState extends State<ProfilePage> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 15),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: CircleIcon(
-                        icon: FontAwesomeIcons.wheelchair,
-                        size: 55,
+                FutureBuilder<List<String>>(
+                  future: AuthService().getUserPreferences(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const SizedBox(
+                        height: 5,
+                      );
+                    }
+
+                    final selectedIssues = snapshot.data!;
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: selectedIssues.map((issue) {
+                          final icon = accessibilityIssues[issue] ??
+                              FontAwesomeIcons.question;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 5),
+                            child: CircleIcon(
+                              icon: icon,
+                              size: 55,
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: CircleIcon(
-                        icon: FontAwesomeIcons.elevator,
-                        size: 55,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: CircleIcon(
-                        icon: FontAwesomeIcons.restroom,
-                        size: 55,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: CircleIcon(
-                        icon: FontAwesomeIcons.signHanging,
-                        size: 55,
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
                 SizedBox(height: 15),
                 if (_createdAt != null)

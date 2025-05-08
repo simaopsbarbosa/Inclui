@@ -7,18 +7,23 @@ import 'package:inclui/widgets/circle_icon.dart';
 import 'package:inclui/services/auth_service.dart';
 
 class UserPreferencesModal extends StatelessWidget {
-  const UserPreferencesModal({super.key});
+  final VoidCallback onPreferencesUpdated;
+  const UserPreferencesModal({super.key, required this.onPreferencesUpdated});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await showModalBottomSheet(
+        final result = await showModalBottomSheet<List<String>>(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.white,
           builder: (context) => const AccessibilityPreferencesModal(),
         );
+
+        if (result != null) {
+          onPreferencesUpdated();
+        }
       },
       child: Container(
         width: double.infinity,

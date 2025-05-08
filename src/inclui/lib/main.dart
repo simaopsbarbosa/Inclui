@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:inclui/screens/search_page.dart';
 import 'package:inclui/services/auth_service.dart';
 import 'firebase_options.dart';
@@ -65,7 +64,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleAuthButton() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.currentUser;
     if (user != null) {
       AuthService.signOut();
 
@@ -113,7 +112,7 @@ class HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: _handleAuthButton,
               child: Text(
-                FirebaseAuth.instance.currentUser != null ? 'Logout' : 'Login',
+                AuthService.currentUser != null ? 'Logout' : 'Login',
                 style: GoogleFonts.inter(
                   color: Theme.of(context).primaryColor,
                   fontSize: 16,

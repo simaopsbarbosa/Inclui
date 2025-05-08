@@ -161,8 +161,7 @@ class SearchPageState extends State<SearchPage> {
                           ),
                         ),
                         onChanged: (value) {
-                          setState(
-                              () {}); // Refresh UI to show/hide the clear button
+                          setState(() {});
                           _onSearchChanged();
                         },
                       ),
