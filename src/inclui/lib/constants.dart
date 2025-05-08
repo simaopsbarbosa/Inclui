@@ -7,7 +7,7 @@ final Map<String, IconData> accessibilityIssues = {
   'Elevator out of service': FontAwesomeIcons.elevator,
   'Heavy doors': FontAwesomeIcons.doorClosed,
   'Slippery flooring': FontAwesomeIcons.personFalling,
-  'Inaccessible bathrooms': FontAwesomeIcons.restroom,
+  'Inaccessible bathrooms': FontAwesomeIcons.toilet,
   'No seating for elderly': FontAwesomeIcons.chair,
   'Poor signage contrast': FontAwesomeIcons.signHanging,
   'No braille menu': FontAwesomeIcons.eyeLowVision,
