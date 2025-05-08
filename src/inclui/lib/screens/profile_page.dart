@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:inclui/widgets/circle_icon.dart';
+import 'package:inclui/widgets/user_preferences_modal.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -204,45 +204,10 @@ class ProfilePageState extends State<ProfilePage> {
                   children: [
                     _buildUserProfile(),
                     if (!_user!.emailVerified) _verifyAccount(),
-                    _setPreferencesWidget(),
+                    UserPreferencesModal(),
                   ],
                 )
               : _buildLoggedOutView()),
-    );
-  }
-
-  Widget _setPreferencesWidget() {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: BoxDecoration(
-        color: Color(0xffF2F2F2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.grey.shade300,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Select the\naccommodations\nyou need',
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.black,
-            ),
-          ),
-          SvgPicture.asset(
-            'assets/icons/labels.svg',
-            semanticsLabel: 'Select Accommodations',
-            width: 140,
-          ),
-        ],
-      ),
     );
   }
 

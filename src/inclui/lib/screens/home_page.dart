@@ -33,7 +33,7 @@ class HomePage extends StatelessWidget {
             child: Center(
               child: CircularProgressIndicator(
                 color: Theme.of(context).primaryColor,
-                backgroundColor: Colors.black,
+                backgroundColor: Colors.grey.shade200,
               ),
             ),
           );

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseDatabase _database = FirebaseDatabase.instance;
 
   static Future<bool> isUserLoggedIn() async {
     return _auth.currentUser != null;
@@ -51,5 +53,25 @@ class AuthService {
 
   Stream<User?> authStateChanges() {
     return _auth.authStateChanges();
+  }
+
+  Future<void> saveUserPreferences(List<String> preferences) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _database.ref('users/${user.uid}/preferences').set(preferences);
+  }
+
+  Future<List<String>> getUserPreferences() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
+
+    final snapshot = await _database.ref('users/${user.uid}/preferences').get();
+
+    if (snapshot.exists && snapshot.value is List) {
+      return List<String>.from(snapshot.value as List);
+    }
+
+    return [];
   }
 }

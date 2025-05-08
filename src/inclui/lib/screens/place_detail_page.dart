@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclui/screens/report_modal.dart';
+import 'package:inclui/widgets/report_modal.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:inclui/services/auth_service.dart';
 

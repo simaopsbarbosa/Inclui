@@ -32,7 +32,6 @@ class ReportIssueSectionState extends State<ReportIssueSection> {
     'Too noisy',
     'No audio description',
     'No ASL interpreter',
-
   ];
 
   String? selectedIssue;
