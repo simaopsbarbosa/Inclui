@@ -45,7 +45,7 @@ class UserPreferencesModal extends StatelessWidget {
               ),
             ),
             SizedBox(
-              width: 135, // adjust as needed
+              width: 135,
               height: 48,
               child: Stack(
                 clipBehavior: Clip.none,
@@ -54,9 +54,9 @@ class UserPreferencesModal extends StatelessWidget {
                     left: 90,
                     child: CircleIcon(
                       icon: FontAwesomeIcons.ellipsis,
-                      iconColor: Colors.white,
-                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
-                      transparency: 0.2,
+                      iconColor: Theme.of(context).primaryColor,
+                      backgroundColor: Colors.white,
+                      transparency: 0.7,
                       size: 48,
                     ),
                   ),
@@ -64,9 +64,9 @@ class UserPreferencesModal extends StatelessWidget {
                     left: 60,
                     child: CircleIcon(
                       icon: FontAwesomeIcons.personPregnant,
-                      iconColor: Colors.white,
-                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
-                      transparency: 0.3,
+                      iconColor: Theme.of(context).primaryColor,
+                      backgroundColor: Colors.white,
+                      transparency: 0.8,
                       size: 48,
                     ),
                   ),
@@ -74,9 +74,9 @@ class UserPreferencesModal extends StatelessWidget {
                     left: 30,
                     child: CircleIcon(
                       icon: FontAwesomeIcons.braille,
-                      iconColor: Colors.white,
-                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
-                      transparency: 0.4,
+                      iconColor: Theme.of(context).primaryColor,
+                      backgroundColor: Colors.white,
+                      transparency: 0.90,
                       size: 48,
                     ),
                   ),
@@ -84,9 +84,8 @@ class UserPreferencesModal extends StatelessWidget {
                     left: 0,
                     child: CircleIcon(
                       icon: FontAwesomeIcons.wheelchair,
-                      iconColor: Colors.white,
-                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
-                      transparency: 0.5,
+                      iconColor: Theme.of(context).primaryColor,
+                      backgroundColor: Colors.white,
                       size: 48,
                     ),
                   ),
