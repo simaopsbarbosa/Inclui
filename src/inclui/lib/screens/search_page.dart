@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:inclui/constants.dart';
 import 'package:inclui/screens/place_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -23,18 +24,6 @@ class SearchPageState extends State<SearchPage> {
 
   double _maxDistance = 1000.0;
   String? _selectedIssueType;
-  final List<String> _issueTypes = [
-    'Not wheelchair accessible',
-    'Elevator out of service',
-    'No braille option',
-    'No non-binary bathroom',
-    'Poor signage contrast',
-    'Inaccessible restroom facilities',
-    'No seating for elderly',
-    'Too noisy',
-    'Heavy doors',
-    'Flashing Lights',
-  ];
 
   @override
   void initState() {
@@ -238,7 +227,8 @@ class SearchPageState extends State<SearchPage> {
                                           value: _selectedIssueType,
                                           isExpanded: true,
                                           hint: Text('Select'),
-                                          items: _issueTypes.map((String type) {
+                                          items: accessibilityIssues.keys
+                                              .map((String type) {
                                             return DropdownMenuItem<String>(
                                               value: type,
                                               child: Text(type),
