@@ -265,6 +265,11 @@ End of Sprint 1:
 Start of Sprint 2:
 ![image](https://github.com/user-attachments/assets/d8ecebc9-1d78-4596-8a66-b83bb791cd69)
 
+End of Sprint 2:
+![image](https://github.com/user-attachments/assets/e8705edb-799f-436d-8a50-da133f1f4a1b)
+
+**Retrospective**: In Sprint 2, we chose our user stories more carefully, which helped us complete everything we planned without unnecessary stress. We'll keep this thoughtful approach in future sprints.
+
 
 ### Sprint 3
 
