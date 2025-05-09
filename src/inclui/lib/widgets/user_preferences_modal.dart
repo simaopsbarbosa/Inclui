@@ -30,7 +30,7 @@ class UserPreferencesModal extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: const Color(0xffF2F2F2),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Colors.grey.shade300,
@@ -96,7 +96,12 @@ class _AccessibilityPreferencesModalState
         height: maxHeight,
         padding: const EdgeInsets.all(20),
         child: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  color: Colors.blue,
+                ),
+              )
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

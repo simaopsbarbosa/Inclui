@@ -254,13 +254,16 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Colors.grey.shade100,
       child: _isLoading
           ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    color: Colors.blue,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     "Setting up your profile...",
@@ -318,7 +321,7 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.all(20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Color(0xffF2F2F2),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.grey.shade300,
@@ -335,14 +338,16 @@ class ProfilePageState extends State<ProfilePage> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      _userName ?? 'Loading...',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                    Flexible(
+                      child: Text(
+                        _userName ?? 'Loading...',
+                        style: GoogleFonts.inter(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                     if (_user != null && _user?.emailVerified == true) ...[
                       SizedBox(width: 5),
@@ -371,7 +376,12 @@ class ProfilePageState extends State<ProfilePage> {
                   future: AuthService().getUserPreferences(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          backgroundColor: Colors.transparent,
+                          color: Colors.blue,
+                        ),
+                      );
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
