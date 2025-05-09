@@ -154,7 +154,10 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                     if (snap.connectionState == ConnectionState.waiting) {
                       return const Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: LinearProgressIndicator(),
+                        child: LinearProgressIndicator(
+                          backgroundColor: Colors.transparent,
+                          color: Colors.blue,
+                        ),
                       );
                     }
                     if (!snap.hasData || snap.data!.value == null) {
