@@ -1,10 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:inclui/constants.dart';
+import 'package:inclui/services/auth_service.dart';
+import 'package:inclui/widgets/circle_icon.dart';
+import 'package:inclui/widgets/user_preferences_modal.dart';
 import 'login_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -12,88 +16,107 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
-
-  late User? _user;
-  late final Stream<User?> _authStateChanges;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? _user;
+  StreamSubscription<User?>? _authSubscription;
   String? _userName;
   String? _createdAt;
   bool _isLoading = true;
+  bool _dataFetchError = false;
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
-    _authStateChanges = _auth.authStateChanges();
-
-    // listen to auth state changes
-    _authStateChanges.listen((user) {
-      setState(() {
-        _user = user;
-        _userName = null;
-        _createdAt = null;
-        _isLoading = user != null;
-      });
-
-      if (user != null) {
-        _fetchUserData(user.uid);
-      }
-    });
+    _setupAuthListener();
 
     if (_user != null) {
       _fetchUserData(_user!.uid);
+    } else {
+      _isLoading = false;
     }
+  }
+
+  void _setupAuthListener() {
+    _authSubscription = _auth.authStateChanges().listen((user) async {
+      if (user != null && (user.uid != _user?.uid)) {
+        if (mounted) {
+          setState(() {
+            _user = user;
+            _userName = null;
+            _createdAt = null;
+            _isLoading = true;
+            _dataFetchError = false;
+          });
+        }
+        await _fetchUserData(user.uid);
+      } else if (user == null) {
+        if (mounted) {
+          setState(() {
+            _user = null;
+            _userName = null;
+            _createdAt = null;
+            _isLoading = false;
+          });
+        }
+      }
+    });
   }
 
   Future<void> _fetchUserData(String uid) async {
     try {
-      // check if user data is available in SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      String? cachedUserName = prefs.getString('userName');
-      String? cachedCreatedAt = prefs.getString('createdAt');
+      final snapshot = await _db
+          .child('users')
+          .child(uid)
+          .get()
+          .timeout(Duration(seconds: 5));
 
-      if (cachedUserName != null && cachedCreatedAt != null) {
-        setState(() {
-          _userName = cachedUserName;
-          _createdAt = cachedCreatedAt;
-          _isLoading = false;
-        });
-      } else {
-        // fetch from Firebase if not cached
-        final snapshot = await _db.child('users').child(uid).get();
-        if (snapshot.exists) {
-          final data = Map<String, dynamic>.from(snapshot.value as Map);
+      if (snapshot.exists) {
+        final data = Map<String, dynamic>.from(snapshot.value as Map);
+        if (mounted) {
           setState(() {
             _userName = data['name']?.toString();
             _createdAt = data['createdAt']?.toString();
             _isLoading = false;
+            _dataFetchError = false;
           });
-
-          prefs.setString('userName', _userName!);
-          prefs.setString('createdAt', _createdAt!);
         }
+      } else {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+        await Future.delayed(Duration(seconds: 1));
+        if (mounted && _user != null) {
+          _fetchUserData(_user!.uid);
+        }
+      }
+    } on TimeoutException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _dataFetchError = true;
+        });
       }
     } catch (e) {
       print('Error fetching user data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _dataFetchError = true;
+        });
+      }
+      await Future.delayed(Duration(seconds: 2));
+      if (mounted && _user != null) {
+        _fetchUserData(_user!.uid);
+      }
     }
   }
 
-  void _signOut() async {
-    await _auth.signOut();
-
-    setState(() {
-      _isLoading = false;
-      _user = null;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Logged out'),
-        backgroundColor: Theme.of(context).primaryColor,
-        duration: Duration(seconds: 2),
-      ),
-    );
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   void _redirectToLogin() {
@@ -128,7 +151,7 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   void _verifyAccountAction() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.currentUser;
     final email = user?.email ?? '';
     final maskedEmail = maskEmail(email);
 
@@ -174,7 +197,7 @@ class ProfilePageState extends State<ProfilePage> {
               ElevatedButton(
                 onPressed: () async {
                   await _user?.reload();
-                  var updatedUser = FirebaseAuth.instance.currentUser;
+                  var updatedUser = AuthService.currentUser;
                   if (updatedUser?.emailVerified == true) {
                     setState(() {
                       _user = updatedUser;
@@ -231,19 +254,64 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Colors.grey.shade100,
       child: _isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    color: Colors.blue,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Setting up your profile...",
+                    style: GoogleFonts.inter(),
+                  ),
+                ],
+              ),
             )
-          : (_user != null
-              ? Column(
-                  children: [
-                    _buildUserProfile(),
-                    if (!_user!.emailVerified) _verifyAccount(),
-                  ],
+          : _dataFetchError
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error, color: Colors.red, size: 48),
+                      SizedBox(height: 16),
+                      Text(
+                        "Failed to load profile data",
+                        style: GoogleFonts.inter(),
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_user != null) {
+                            setState(() {
+                              _isLoading = true;
+                              _dataFetchError = false;
+                            });
+                            _fetchUserData(_user!.uid);
+                          }
+                        },
+                        child: Text("Retry"),
+                      ),
+                    ],
+                  ),
                 )
-              : _buildLoggedOutView()),
+              : (_user != null
+                  ? Column(
+                      children: [
+                        _buildUserProfile(),
+                        if (!_user!.emailVerified) _verifyAccount(),
+                        UserPreferencesModal(
+                          onPreferencesUpdated: () {
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    )
+                  : _buildLoggedOutView()),
     );
   }
 
@@ -253,7 +321,7 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.all(20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.grey.shade300,
@@ -270,14 +338,16 @@ class ProfilePageState extends State<ProfilePage> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      _userName ?? 'Loading...',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                    Flexible(
+                      child: Text(
+                        _userName ?? 'Loading...',
+                        style: GoogleFonts.inter(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                     if (_user != null && _user?.emailVerified == true) ...[
                       SizedBox(width: 5),
@@ -301,7 +371,48 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 50),
+                SizedBox(height: 15),
+                FutureBuilder<List<String>>(
+                  future: AuthService().getUserPreferences(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(25.0),
+                          child: LinearProgressIndicator(
+                            backgroundColor: Colors.transparent,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      );
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const SizedBox(
+                        height: 5,
+                      );
+                    }
+
+                    final selectedIssues = snapshot.data!;
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: selectedIssues.map((issue) {
+                          final icon = accessibilityIssues[issue] ??
+                              FontAwesomeIcons.question;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 5),
+                            child: CircleIcon(
+                              icon: icon,
+                              size: 55,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 15),
                 if (_createdAt != null)
                   Text(
                     formatDate(_createdAt!),
@@ -322,21 +433,6 @@ class ProfilePageState extends State<ProfilePage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: _signOut,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.black,
-            ),
-            child: Text(
-              'Logout',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
             ),
           ),
         ],
@@ -362,15 +458,14 @@ class ProfilePageState extends State<ProfilePage> {
           Icon(
             Icons.warning_rounded,
             color: Colors.pinkAccent,
-            size: 35,
+            size: 25,
           ),
           SizedBox(width: 13),
           Expanded(
             child: Text(
               'Your account needs to be verified in order to leave reviews.',
               style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w300,
+                fontSize: 14,
                 color: Colors.black,
               ),
             ),
@@ -380,12 +475,11 @@ class ProfilePageState extends State<ProfilePage> {
             onPressed: () async {
               _sendVerificationEmail();
               _verifyAccountAction();
-              //_startCountdown();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-            ),
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 15)),
             child: Text(
               'Verify Now',
               style: GoogleFonts.inter(
@@ -434,7 +528,6 @@ class ProfilePageState extends State<ProfilePage> {
   }
 }
 
-// format the date in DD/MM/YYYY format
 String formatDate(String isoDate) {
   try {
     final date = DateTime.parse(isoDate).toLocal();
@@ -445,14 +538,4 @@ String formatDate(String isoDate) {
   } catch (e) {
     return '';
   }
-}
-
-bool isEmailVerified() {
-  final user = FirebaseAuth.instance.currentUser;
-  return user?.emailVerified ?? false;
-}
-
-String? getUserEmail() {
-  final user = FirebaseAuth.instance.currentUser;
-  return user?.email;
 }

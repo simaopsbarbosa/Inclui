@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclui/place_detail_page.dart';
+import 'package:inclui/constants.dart';
+import 'package:inclui/screens/place_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -23,18 +24,6 @@ class SearchPageState extends State<SearchPage> {
 
   double _maxDistance = 1000.0;
   String? _selectedIssueType;
-  final List<String> _issueTypes = [
-    'Not wheelchair accessible',
-    'Elevator out of service',
-    'No braille option',
-    'No non-binary bathroom',
-    'Poor signage contrast',
-    'Inaccessible restroom facilities',
-    'No seating for elderly',
-    'Too noisy',
-    'Heavy doors',
-    'Flashing Lights',
-  ];
 
   @override
   void initState() {
@@ -114,7 +103,7 @@ class SearchPageState extends State<SearchPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
-        color: Colors.white,
+        color: Colors.grey.shade100,
         child: Padding(
           padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
           child: Column(
@@ -134,6 +123,17 @@ class SearchPageState extends State<SearchPage> {
                           hintText: 'Search by place name...',
                           prefixIcon:
                               Icon(Icons.search, color: Colors.grey[600]),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.close,
+                                      color: Colors.grey[600]),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _placePredictions = []);
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                )
+                              : null,
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: EdgeInsets.symmetric(
@@ -149,7 +149,10 @@ class SearchPageState extends State<SearchPage> {
                                 color: Colors.grey.shade300, width: 2.0),
                           ),
                         ),
-                        onChanged: (value) => _onSearchChanged(),
+                        onChanged: (value) {
+                          setState(() {});
+                          _onSearchChanged();
+                        },
                       ),
                     ),
                   ),
@@ -224,7 +227,8 @@ class SearchPageState extends State<SearchPage> {
                                           value: _selectedIssueType,
                                           isExpanded: true,
                                           hint: Text('Select'),
-                                          items: _issueTypes.map((String type) {
+                                          items: accessibilityIssues.keys
+                                              .map((String type) {
                                             return DropdownMenuItem<String>(
                                               value: type,
                                               child: Text(type),
@@ -299,7 +303,7 @@ class SearchPageState extends State<SearchPage> {
                             BorderSide(color: Colors.grey.shade300, width: 1.0),
                       ),
                       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                      color: Colors.grey.shade100,
+                      color: Colors.white,
                       shadowColor: Colors.transparent,
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
@@ -323,7 +327,10 @@ class SearchPageState extends State<SearchPage> {
                               },
                               leading: Icon(Icons.place,
                                   color: Theme.of(context).primaryColor),
-                              title: Text(prediction['name'] ?? ''),
+                              title: Text(prediction['name'] ?? '',
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.bold,
+                                  )),
                               subtitle: Text(prediction['address'] ?? ''),
                             ),
                           ],

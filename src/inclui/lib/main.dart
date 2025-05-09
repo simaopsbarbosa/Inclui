@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:inclui/search_page.dart';
+import 'package:inclui/screens/search_page.dart';
+import 'package:inclui/services/auth_service.dart';
 import 'firebase_options.dart';
-import 'login_page.dart';
-import 'home_page.dart';
-import 'profile_page.dart';
+import 'screens/login_page.dart';
+import 'screens/home_page.dart';
+import 'screens/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await dotenv.load(fileName: ".env");
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(MyApp());
 }
 
@@ -24,8 +29,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        primarySwatch: Colors.blue,
         primaryColor: Color(0xFF006CFF),
         canvasColor: Colors.grey[200],
+        fontFamily: GoogleFonts.inter().fontFamily,
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
         ),
@@ -44,18 +51,11 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  Widget _getPage(int index) {
-    switch (index) {
-      case 0:
-        return HomePage();
-      case 1:
-        return SearchPage();
-      case 2:
-        return ProfilePage();
-      default:
-        return HomePage();
-    }
-  }
+  late final List<Widget> _pages = [
+    HomePage(),
+    SearchPage(),
+    ProfilePage(),
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -64,8 +64,17 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleAuthButton() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = AuthService.currentUser;
     if (user != null) {
+      AuthService.signOut();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logged out'),
+          backgroundColor: Theme.of(context).primaryColor,
+          duration: Duration(seconds: 2),
+        ),
+      );
       setState(() {
         _selectedIndex = 2;
       });
@@ -87,12 +96,14 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).canvasColor,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.white,
+        elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5),
               child: Image.asset(
                 'assets/logo/inclui-b.png',
                 height: 24,
@@ -101,26 +112,28 @@ class HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: _handleAuthButton,
               child: Text(
-                FirebaseAuth.instance.currentUser != null ? 'Profile' : 'Login',
+                AuthService.currentUser != null ? 'Logout' : 'Login',
                 style: GoogleFonts.inter(
                   color: Theme.of(context).primaryColor,
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-            )
+            ),
           ],
         ),
-        elevation: 0,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.0),
+          preferredSize: const Size.fromHeight(1.0),
           child: Container(
             color: Colors.grey[300],
             height: 1.0,
           ),
         ),
       ),
-      body: _getPage(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(
@@ -133,6 +146,7 @@ class HomeScreenState extends State<HomeScreen> {
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
+          backgroundColor: Colors.white,
           selectedItemColor: Theme.of(context).primaryColor,
           unselectedItemColor: Colors.black,
           selectedLabelStyle: GoogleFonts.inter(
@@ -140,7 +154,7 @@ class HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.w800,
           ),
           iconSize: 32,
-          items: [
+          items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_rounded),
               label: 'Home',

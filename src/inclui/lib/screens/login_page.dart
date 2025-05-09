@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -9,9 +8,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
-  final _auth = FirebaseAuth.instance;
-  final _db = FirebaseDatabase.instance.ref();
-
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _repeatPasswordController = TextEditingController();
@@ -22,9 +18,9 @@ class LoginPageState extends State<LoginPage> {
 
   Future<void> _signIn() async {
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      await AuthService.signIn(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
       _showSnackbar('Login successful');
       Navigator.pop(context, true);
@@ -43,17 +39,7 @@ class LoginPageState extends State<LoginPage> {
     if (name.isEmpty) return _setError("Please enter your name");
 
     try {
-      final cred = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      await _db.child('users/${cred.user!.uid}').set({
-        'name': name,
-        'email': email,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
+      await AuthService.signUp(email, password, name);
       _showSnackbar('Registration successful');
       Navigator.pop(context, true);
     } catch (e) {
@@ -88,6 +74,7 @@ class LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xff060A21),
       appBar: AppBar(
+        centerTitle: false,
         title: Text(
           isRegistering ? 'Register' : 'Login',
           style: GoogleFonts.inter(
@@ -109,103 +96,18 @@ class LoginPageState extends State<LoginPage> {
             Image.asset('assets/logo/inclui-w.png', height: 64),
             const SizedBox(height: 100),
             if (isRegistering) ...[
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: 'Name',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
+              _buildTextField(controller: _nameController, hint: 'Name'),
               const SizedBox(height: 12),
             ],
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Email',
-                hintStyle: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
+            _buildTextField(controller: _emailController, hint: 'Email'),
             const SizedBox(height: 12),
-            TextField(
-              controller: _passwordController,
-              style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
-              decoration: InputDecoration(
-                filled: false,
-                hintText: 'Password',
-                hintStyle:
-                    GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: Colors.grey.shade900,
-                    width: 1.5,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).primaryColor,
-                    width: 2,
-                  ),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              ),
-              obscureText: true,
-            ),
+            _buildPasswordField(
+                controller: _passwordController, hint: 'Password'),
             if (isRegistering) ...[
               const SizedBox(height: 12),
-              TextField(
-                controller: _repeatPasswordController,
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
-                decoration: InputDecoration(
-                  filled: false,
-                  hintText: 'Repeat password',
-                  hintStyle:
-                      GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade900,
-                      width: 1.5,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).primaryColor,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                ),
-                obscureText: true,
-              ),
+              _buildPasswordField(
+                  controller: _repeatPasswordController,
+                  hint: 'Repeat password'),
             ],
             const SizedBox(height: 16),
             if (_errorMessage != null)
@@ -255,6 +157,51 @@ class LoginPageState extends State<LoginPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(
+      {required TextEditingController controller, required String hint}) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        hintText: hint,
+        hintStyle: GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      ),
+      keyboardType: TextInputType.emailAddress,
+    );
+  }
+
+  Widget _buildPasswordField(
+      {required TextEditingController controller, required String hint}) {
+    return TextField(
+      controller: controller,
+      style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
+      decoration: InputDecoration(
+        filled: false,
+        hintText: hint,
+        hintStyle: GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade900, width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      ),
+      obscureText: true,
     );
   }
 }
