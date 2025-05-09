@@ -377,9 +377,12 @@ class ProfilePageState extends State<ProfilePage> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(
-                          backgroundColor: Colors.transparent,
-                          color: Colors.blue,
+                        child: Padding(
+                          padding: EdgeInsets.all(25.0),
+                          child: LinearProgressIndicator(
+                            backgroundColor: Colors.transparent,
+                            color: Colors.blue,
+                          ),
                         ),
                       );
                     }
