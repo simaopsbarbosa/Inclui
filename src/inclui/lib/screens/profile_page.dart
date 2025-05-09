@@ -18,47 +18,105 @@ class ProfilePage extends StatefulWidget {
 class ProfilePageState extends State<ProfilePage> {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  late User? _user;
-  late final Stream<User?> _authStateChanges;
+  User? _user;
+  StreamSubscription<User?>? _authSubscription;
   String? _userName;
   String? _createdAt;
   bool _isLoading = true;
+  bool _dataFetchError = false;
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
-    _authStateChanges = _auth.authStateChanges();
-
-    // listen to auth state changes
-    _authStateChanges.listen((user) {
-      setState(() {
-        _user = user;
-        _userName = null;
-        _createdAt = null;
-        _isLoading = user != null;
-      });
-
-      if (user != null) {
-        _fetchUserData(user.uid);
-      }
-    });
+    _setupAuthListener();
 
     if (_user != null) {
       _fetchUserData(_user!.uid);
+    } else {
+      _isLoading = false;
     }
   }
 
+  void _setupAuthListener() {
+    _authSubscription = _auth.authStateChanges().listen((user) async {
+      if (user != null && (user.uid != _user?.uid)) {
+        if (mounted) {
+          setState(() {
+            _user = user;
+            _userName = null;
+            _createdAt = null;
+            _isLoading = true;
+            _dataFetchError = false;
+          });
+        }
+        await _fetchUserData(user.uid);
+      } else if (user == null) {
+        if (mounted) {
+          setState(() {
+            _user = null;
+            _userName = null;
+            _createdAt = null;
+            _isLoading = false;
+          });
+        }
+      }
+    });
+  }
+
   Future<void> _fetchUserData(String uid) async {
-    final snapshot = await _db.child('users').child(uid).get();
-    if (snapshot.exists) {
-      final data = Map<String, dynamic>.from(snapshot.value as Map);
-      setState(() {
-        _userName = data['name']?.toString();
-        _createdAt = data['createdAt']?.toString();
-        _isLoading = false;
-      });
+    try {
+      final snapshot = await _db
+          .child('users')
+          .child(uid)
+          .get()
+          .timeout(Duration(seconds: 5));
+
+      if (snapshot.exists) {
+        final data = Map<String, dynamic>.from(snapshot.value as Map);
+        if (mounted) {
+          setState(() {
+            _userName = data['name']?.toString();
+            _createdAt = data['createdAt']?.toString();
+            _isLoading = false;
+            _dataFetchError = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+        await Future.delayed(Duration(seconds: 1));
+        if (mounted && _user != null) {
+          _fetchUserData(_user!.uid);
+        }
+      }
+    } on TimeoutException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _dataFetchError = true;
+        });
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _dataFetchError = true;
+        });
+      }
+      await Future.delayed(Duration(seconds: 2));
+      if (mounted && _user != null) {
+        _fetchUserData(_user!.uid);
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   void _redirectToLogin() {
@@ -199,21 +257,58 @@ class ProfilePageState extends State<ProfilePage> {
       color: Colors.white,
       child: _isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    "Setting up your profile...",
+                    style: GoogleFonts.inter(),
+                  ),
+                ],
+              ),
             )
-          : (_user != null
-              ? Column(
-                  children: [
-                    _buildUserProfile(),
-                    if (!_user!.emailVerified) _verifyAccount(),
-                    UserPreferencesModal(
-                      onPreferencesUpdated: () {
-                        setState(() {});
-                      },
-                    ),
-                  ],
+          : _dataFetchError
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error, color: Colors.red, size: 48),
+                      SizedBox(height: 16),
+                      Text(
+                        "Failed to load profile data",
+                        style: GoogleFonts.inter(),
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_user != null) {
+                            setState(() {
+                              _isLoading = true;
+                              _dataFetchError = false;
+                            });
+                            _fetchUserData(_user!.uid);
+                          }
+                        },
+                        child: Text("Retry"),
+                      ),
+                    ],
+                  ),
                 )
-              : _buildLoggedOutView()),
+              : (_user != null
+                  ? Column(
+                      children: [
+                        _buildUserProfile(),
+                        if (!_user!.emailVerified) _verifyAccount(),
+                        UserPreferencesModal(
+                          onPreferencesUpdated: () {
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    )
+                  : _buildLoggedOutView()),
     );
   }
 
@@ -367,7 +462,6 @@ class ProfilePageState extends State<ProfilePage> {
             onPressed: () async {
               _sendVerificationEmail();
               _verifyAccountAction();
-              //_startCountdown();
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
@@ -421,7 +515,6 @@ class ProfilePageState extends State<ProfilePage> {
   }
 }
 
-// format the date in DD/MM/YYYY format
 String formatDate(String isoDate) {
   try {
     final date = DateTime.parse(isoDate).toLocal();

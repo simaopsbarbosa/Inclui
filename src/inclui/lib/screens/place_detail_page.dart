@@ -210,7 +210,8 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                   )
                 else
                   Padding(
-                    padding: const EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32.0, vertical: 16),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.transparent,
@@ -221,11 +222,11 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.warning_amber_rounded,
+                              FontAwesomeIcons.triangleExclamation,
                               color: Colors.grey.shade500,
                               size: 32,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'In order to place reviews, you must be logged in and verified',
@@ -241,6 +242,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                       ),
                     ),
                   ),
+                const SizedBox(height: 64),
               ],
             ),
           );
