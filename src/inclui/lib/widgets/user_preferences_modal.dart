@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:inclui/constants.dart';
@@ -28,14 +27,10 @@ class UserPreferencesModal extends StatelessWidget {
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).primaryColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.grey.shade300,
-            width: 1,
-          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -45,13 +40,58 @@ class UserPreferencesModal extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: Colors.white,
+                height: 1.2,
               ),
             ),
-            SvgPicture.asset(
-              'assets/icons/labels.svg',
-              semanticsLabel: 'Select Accommodations',
-              width: 140,
+            SizedBox(
+              width: 135, // adjust as needed
+              height: 48,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: 90,
+                    child: CircleIcon(
+                      icon: FontAwesomeIcons.ellipsis,
+                      iconColor: Colors.white,
+                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
+                      transparency: 0.2,
+                      size: 48,
+                    ),
+                  ),
+                  Positioned(
+                    left: 60,
+                    child: CircleIcon(
+                      icon: FontAwesomeIcons.personPregnant,
+                      iconColor: Colors.white,
+                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
+                      transparency: 0.3,
+                      size: 48,
+                    ),
+                  ),
+                  Positioned(
+                    left: 30,
+                    child: CircleIcon(
+                      icon: FontAwesomeIcons.braille,
+                      iconColor: Colors.white,
+                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
+                      transparency: 0.4,
+                      size: 48,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    child: CircleIcon(
+                      icon: FontAwesomeIcons.wheelchair,
+                      iconColor: Colors.white,
+                      backgroundColor: Color.fromARGB(255, 198, 198, 198),
+                      transparency: 0.5,
+                      size: 48,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
