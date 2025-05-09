@@ -97,7 +97,7 @@ class HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         scrolledUnderElevation: 0,
-        backgroundColor: Theme.of(context).canvasColor,
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -146,6 +146,7 @@ class HomeScreenState extends State<HomeScreen> {
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
+          backgroundColor: Colors.white,
           selectedItemColor: Theme.of(context).primaryColor,
           unselectedItemColor: Colors.black,
           selectedLabelStyle: GoogleFonts.inter(

@@ -114,7 +114,7 @@ class SearchPageState extends State<SearchPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
-        color: Colors.white,
+        color: Colors.grey.shade100,
         child: Padding(
           padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
           child: Column(
@@ -313,7 +313,7 @@ class SearchPageState extends State<SearchPage> {
                             BorderSide(color: Colors.grey.shade300, width: 1.0),
                       ),
                       margin: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                      color: Colors.grey.shade100,
+                      color: Colors.white,
                       shadowColor: Colors.transparent,
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),

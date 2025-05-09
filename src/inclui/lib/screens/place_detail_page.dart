@@ -63,10 +63,11 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Colors.white,
         title: Text(
           'Place Details',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 20),
@@ -84,7 +85,11 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
         future: _photoFuture,
         builder: (context, photoSnap) {
           if (photoSnap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(
+              backgroundColor: Colors.transparent,
+              color: Colors.blue,
+            ));
           }
           final imageUrl = photoSnap.data;
           return SingleChildScrollView(
@@ -113,7 +118,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.white,
                       border: Border.all(color: Colors.grey.shade300, width: 1),
                       borderRadius: imageUrl != null
                           ? const BorderRadius.only(
