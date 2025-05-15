@@ -8,6 +8,7 @@ import 'package:inclui/constants.dart';
 import 'package:inclui/services/auth_service.dart';
 import 'package:inclui/widgets/circle_icon.dart';
 import 'package:inclui/widgets/user_preferences_modal.dart';
+import 'package:inclui/widgets/report_card.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -251,67 +252,78 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _buildUserReports() {
+    if (_user == null) return SizedBox(); 
+    return ReportCard(userId: _user!.uid); 
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade100,
-      child: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(
-                    backgroundColor: Colors.transparent,
-                    color: Colors.blue,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Setting up your profile...",
-                    style: GoogleFonts.inter(),
-                  ),
-                ],
-              ),
-            )
-          : _dataFetchError
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error, color: Colors.red, size: 48),
-                      SizedBox(height: 16),
-                      Text(
-                        "Failed to load profile data",
-                        style: GoogleFonts.inter(),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_user != null) {
-                            setState(() {
-                              _isLoading = true;
-                              _dataFetchError = false;
-                            });
-                            _fetchUserData(_user!.uid);
-                          }
-                        },
-                        child: Text("Retry"),
-                      ),
-                    ],
-                  ),
-                )
-              : (_user != null
-                  ? Column(
+    return SingleChildScrollView (
+      child: Container(
+        color: Colors.grey.shade100,
+        child: _isLoading
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                      color: Colors.blue,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Setting up your profile...",
+                      style: GoogleFonts.inter(),
+                    ),
+                  ],
+                ),
+              )
+            : _dataFetchError
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildUserProfile(),
-                        if (!_user!.emailVerified) _verifyAccount(),
-                        UserPreferencesModal(
-                          onPreferencesUpdated: () {
-                            setState(() {});
+                        Icon(Icons.error, color: Colors.red, size: 48),
+                        SizedBox(height: 16),
+                        Text(
+                          "Failed to load profile data",
+                          style: GoogleFonts.inter(),
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_user != null) {
+                              setState(() {
+                                _isLoading = true;
+                                _dataFetchError = false;
+                              });
+                              _fetchUserData(_user!.uid);
+                            }
                           },
+                          child: Text("Retry"),
                         ),
                       ],
-                    )
-                  : _buildLoggedOutView()),
+                    ),
+                  )
+                : (_user != null
+                    ? Column(
+                        children: [
+                          _buildUserProfile(),
+                          if (!_user!.emailVerified) _verifyAccount(),
+                          UserPreferencesModal(
+                            onPreferencesUpdated: () {
+                              setState(() {});
+                            },
+                          ),
+                          Text("${_userName ?? 'User'}'s Reports",
+                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 16),
+                          _buildUserReports(),
+                        ],
+                      )
+                    : _buildLoggedOutView()),
+      )
     );
   }
 
