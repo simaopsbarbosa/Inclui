@@ -9,8 +9,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ReportCard extends StatefulWidget {
   final String userId;
+  final Function(int)? onReportsCountChanged;
 
-  const ReportCard({required this.userId, super.key});
+  const ReportCard({
+    required this.userId,
+    this.onReportsCountChanged,
+    super.key,
+  });
 
   @override
   State<ReportCard> createState() => _ReportCardState();
@@ -33,6 +38,11 @@ class _ReportCardState extends State<ReportCard> {
   void dispose() {
     _reportsSubscription?.cancel();
     super.dispose();
+  }
+
+  void _updateReportsCount() {
+    final count = reportsByUser.values.expand((reports) => reports).length;
+    widget.onReportsCountChanged?.call(count);
   }
 
   Future<Map<String, String>?> fetchPlaceDetails(String placeId) async {
@@ -103,6 +113,7 @@ class _ReportCardState extends State<ReportCard> {
               _dataFetchError = false;
               reportsByUser = {};
             });
+            _updateReportsCount();
           }
           return;
         }
@@ -160,6 +171,7 @@ class _ReportCardState extends State<ReportCard> {
             _isLoading = false;
             _dataFetchError = false;
           });
+          _updateReportsCount();
         }
       } else {
         if (mounted) {
@@ -168,6 +180,7 @@ class _ReportCardState extends State<ReportCard> {
             _dataFetchError = false;
             reportsByUser = {};
           });
+          _updateReportsCount();
         }
       }
     } catch (e) {
@@ -232,6 +245,7 @@ class _ReportCardState extends State<ReportCard> {
                         );
 
                         await reportRef.remove();
+                        _updateReportsCount();
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -287,7 +301,7 @@ class _ReportCardState extends State<ReportCard> {
       return const Text("Error loading reports.");
     }
     if (reportsByUser.isEmpty) {
-      return const Text("No reports found.");
+      return const SizedBox();
     }
 
     return Column(
