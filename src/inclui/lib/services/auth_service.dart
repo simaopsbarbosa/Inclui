@@ -73,14 +73,14 @@ class AuthService {
     return _auth.authStateChanges();
   }
 
-  Future<void> saveUserPreferences(List<String> preferences) async {
+  static Future<void> saveUserPreferences(List<String> preferences) async {
     final user = _auth.currentUser;
     if (user == null) return;
 
     await _database.ref('users/${user.uid}/preferences').set(preferences);
   }
 
-  Future<List<String>> getUserPreferences() async {
+  static Future<List<String>> getUserPreferences() async {
     final user = _auth.currentUser;
     if (user == null) return [];
 

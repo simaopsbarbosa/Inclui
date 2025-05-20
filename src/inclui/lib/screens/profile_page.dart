@@ -373,7 +373,7 @@ class ProfilePageState extends State<ProfilePage> {
                 ),
                 SizedBox(height: 15),
                 FutureBuilder<List<String>>(
-                  future: AuthService().getUserPreferences(),
+                  future: AuthService.getUserPreferences(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
