@@ -3,9 +3,13 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:inclui/constants.dart';
 import 'package:inclui/services/auth_service.dart';
+import 'package:inclui/services/report_service.dart';
 import 'package:inclui/widgets/circle_icon.dart';
 import 'package:inclui/widgets/user_preferences_modal.dart';
 import 'package:inclui/widgets/report_card.dart';
@@ -25,6 +29,11 @@ class ProfilePageState extends State<ProfilePage> {
   String? _createdAt;
   bool _isLoading = true;
   bool _dataFetchError = false;
+  Map<String, List<Map<String, dynamic>>> _reportsByUser = {};
+  Map<String, Map<String, String>> _placeDetailsMap = {};
+  bool _isLoadingReports = false;
+  bool _reportsDataFetchError = false;
+  StreamSubscription? _reportSubscription;
 
   @override
   void initState() {
@@ -32,8 +41,15 @@ class ProfilePageState extends State<ProfilePage> {
     _user = _auth.currentUser;
     _setupAuthListener();
 
+    _reportSubscription = ReportService().onReportUpdate.listen((_) {
+      if (_user != null && mounted) {
+        _fetchUserReports(_user!.uid);
+      }
+    });
+
     if (_user != null) {
       _fetchUserData(_user!.uid);
+      _fetchUserReports(_user!.uid);
     } else {
       _isLoading = false;
     }
@@ -114,9 +130,159 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<Map<String, String>?> _fetchPlaceDetails(String placeId) async {
+    final String url =
+        'https://maps.googleapis.com/maps/api/place/details/json?placeid=$placeId&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['status'] == 'OK') {
+          final result = data['result'];
+          final String name = result['name'] ?? 'Unknown Place';
+          final String address =
+              result['formatted_address'] ?? 'Unknown Address';
+          String cleanedAddress = address.replaceAll('s/n, ', '').trim();
+
+          return {'name': name, 'address': cleanedAddress};
+        } else {
+          debugPrint('Error: ${data['status']}');
+          return null;
+        }
+      } else {
+        debugPrint('Error: Failed to fetch data');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+      return null;
+    }
+  }
+
+  Future<void> _fetchUserReports(String uid) async {
+    if (mounted) {
+      setState(() {
+        _isLoadingReports = true;
+        _reportsDataFetchError = false;
+      });
+    }
+
+    try {
+      final snapshot = await FirebaseDatabase.instance
+          .ref('reports')
+          .get()
+          .timeout(const Duration(seconds: 5));
+
+      if (snapshot.exists) {
+        final allReports = snapshot.value;
+        if (allReports is! Map) {
+          if (mounted) {
+            setState(() {
+              _isLoadingReports = false;
+              _reportsDataFetchError = false;
+              _reportsByUser = {};
+            });
+          }
+          return;
+        }
+
+        Map<String, List<Map<String, dynamic>>> groupedReports = {};
+
+        for (var reportEntry in (allReports).entries) {
+          final reportId = reportEntry.key.toString();
+          final issueMap = reportEntry.value;
+
+          if (issueMap is! Map) continue;
+
+          for (var issueEntry in (issueMap).entries) {
+            final issue = issueEntry.key.toString();
+            final userMap = issueEntry.value;
+
+            if (userMap is! Map) continue;
+
+            for (var userEntry in (userMap).entries) {
+              final userId = userEntry.key.toString();
+              final data = userEntry.value;
+
+              if (userId == uid && data is Map) {
+                try {
+                  final email = data['email']?.toString() ?? 'unknown';
+                  final timestamp = data['timestamp']?.toString();
+
+                  groupedReports.putIfAbsent(email, () => []).add({
+                    'issue': issue,
+                    'userId': userId,
+                    'reportId': reportId,
+                    'timestamp': timestamp,
+                    'email': email,
+                  });
+
+                  if (!_placeDetailsMap.containsKey(reportId)) {
+                    Map<String, String>? placeDetails =
+                        await _fetchPlaceDetails(reportId);
+                    if (placeDetails != null && mounted) {
+                      setState(() {
+                        _placeDetailsMap[reportId] = placeDetails;
+                      });
+                    }
+                  }
+                } catch (e) {
+                  debugPrint('Error processing report data: $e');
+                }
+              }
+            }
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _reportsByUser = groupedReports;
+            _isLoadingReports = false;
+            _reportsDataFetchError = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoadingReports = false;
+            _reportsDataFetchError = false;
+            _reportsByUser = {};
+          });
+        }
+      }
+    } on TimeoutException {
+      if (mounted) {
+        setState(() {
+          _isLoadingReports = false;
+          _reportsDataFetchError = true;
+        });
+      }
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        _fetchUserReports(uid);
+      }
+    } catch (e) {
+      debugPrint('Error fetching reports: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingReports = false;
+          _reportsDataFetchError = true;
+        });
+      }
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        _fetchUserReports(uid);
+      }
+    }
+  }
+
   @override
   void dispose() {
     _authSubscription?.cancel();
+    _reportSubscription?.cancel();
     super.dispose();
   }
 
@@ -252,78 +418,158 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  String _getReportCountText() {
+    int totalReports = 0;
+
+    for (var reports in _reportsByUser.values) {
+      totalReports += reports.length;
+    }
+
+    if (totalReports == 0) {
+      return "No reports yet";
+    } else if (totalReports == 1) {
+      return "1 report";
+    } else {
+      return "$totalReports reports";
+    }
+  }
+
   Widget _buildUserReports() {
     if (_user == null) return SizedBox();
-    return ReportCard(userId: _user!.uid);
+
+    if (_isLoadingReports) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+      );
+    }
+
+    if (_reportsDataFetchError) {
+      return Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 40),
+            const SizedBox(height: 10),
+            Text(
+              "Failed to load reports",
+              style: GoogleFonts.inter(
+                color: Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (_user != null) {
+                  _fetchUserReports(_user!.uid);
+                }
+              },
+              child: Text("Retry"),
+            )
+          ],
+        ),
+      );
+    }
+
+    return ReportCard(
+      userId: _user!.uid,
+      reportsByUser: _reportsByUser,
+      placeDetailsMap: _placeDetailsMap,
+      onReportRemoved: () {
+        setState(() {});
+      },
+    );
+  }
+
+  Future<void> _refreshData() async {
+    if (_user != null) {
+      setState(() {
+        _isLoading = true;
+        _dataFetchError = false;
+        _isLoadingReports = true;
+        _reportsDataFetchError = false;
+      });
+      await _fetchUserData(_user!.uid);
+      await _fetchUserReports(_user!.uid);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: SingleChildScrollView(
-        child: _isLoading
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(
-                      backgroundColor: Colors.transparent,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      "Setting up your profile...",
-                      style: GoogleFonts.inter(),
-                    ),
-                  ],
-                ),
-              )
-            : _dataFetchError
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.error, color: Colors.red, size: 48),
-                        SizedBox(height: 16),
-                        Text(
-                          "Failed to load profile data",
-                          style: GoogleFonts.inter(),
-                        ),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_user != null) {
-                              setState(() {
-                                _isLoading = true;
-                                _dataFetchError = false;
-                              });
-                              _fetchUserData(_user!.uid);
-                            }
-                          },
-                          child: Text("Retry"),
-                        ),
-                      ],
-                    ),
-                  )
-                : (_user != null
-                    ? Column(
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        color: Theme.of(context).primaryColor,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: _isLoading
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        backgroundColor: Colors.transparent,
+                        color: Colors.blue,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "Setting up your profile...",
+                        style: GoogleFonts.inter(),
+                      ),
+                    ],
+                  ),
+                )
+              : _dataFetchError
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildUserProfile(),
-                          if (!_user!.emailVerified) _verifyAccount(),
-                          UserPreferencesModal(
-                            onPreferencesUpdated: () {
-                              setState(() {});
-                            },
-                          ),
-                          Text("${_userName ?? 'User'}'s Reports",
-                              style: GoogleFonts.inter(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                          Icon(Icons.error, color: Colors.red, size: 48),
                           SizedBox(height: 16),
-                          _buildUserReports(),
+                          Text(
+                            "Failed to load profile data",
+                            style: GoogleFonts.inter(),
+                          ),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (_user != null) {
+                                setState(() {
+                                  _isLoading = true;
+                                  _dataFetchError = false;
+                                });
+                                _fetchUserData(_user!.uid);
+                              }
+                            },
+                            child: Text("Retry"),
+                          ),
                         ],
-                      )
-                    : _buildLoggedOutView()),
+                      ),
+                    )
+                  : (_user != null
+                      ? Column(
+                          children: [
+                            _buildUserProfile(),
+                            if (!_user!.emailVerified) _verifyAccount(),
+                            UserPreferencesModal(
+                              onPreferencesUpdated: () {
+                                setState(() {});
+                              },
+                            ),
+                            Text("${_userName ?? 'User'}'s Reports",
+                                style: GoogleFonts.inter(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 16),
+                            _buildUserReports(),
+                          ],
+                        )
+                      : _buildLoggedOutView()),
+        ),
       ),
     );
   }
@@ -437,7 +683,7 @@ class ProfilePageState extends State<ProfilePage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 Text(
-                  "No reports yet",
+                  _getReportCountText(),
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,

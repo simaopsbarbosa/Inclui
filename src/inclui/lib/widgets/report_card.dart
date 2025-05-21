@@ -1,174 +1,37 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 import 'package:inclui/constants.dart';
+import 'package:inclui/services/report_service.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ReportCard extends StatefulWidget {
   final String userId;
+  final Map<String, List<Map<String, dynamic>>> reportsByUser;
+  final Map<String, Map<String, String>> placeDetailsMap;
+  final Function()? onReportRemoved;
 
-  const ReportCard({required this.userId, super.key});
+  const ReportCard({
+    required this.userId,
+    required this.reportsByUser,
+    required this.placeDetailsMap,
+    this.onReportRemoved,
+    super.key,
+  });
 
   @override
   State<ReportCard> createState() => _ReportCardState();
 }
 
 class _ReportCardState extends State<ReportCard> {
-  bool _isLoading = true;
-  bool _dataFetchError = false;
-  Map<String, List<Map<String, dynamic>>> reportsByUser = {};
-  Map<String, Map<String, String>> _placeDetailsMap = {};
+  Map<String, List<Map<String, dynamic>>> get reportsByUser =>
+      widget.reportsByUser;
+  Map<String, Map<String, String>> get _placeDetailsMap =>
+      widget.placeDetailsMap;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserReports(widget.userId);
-  }
-
-  Future<Map<String, String>?> fetchPlaceDetails(String placeId) async {
-    final String url =
-        'https://maps.googleapis.com/maps/api/place/details/json?placeid=$placeId&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['status'] == 'OK') {
-          final result = data['result'];
-          final String name = result['name'] ?? 'Unknown Place';
-          final String address =
-              result['formatted_address'] ?? 'Unknown Address';
-          String cleanedAddress = address.replaceAll('s/n, ', '').trim();
-
-          return {'name': name, 'address': cleanedAddress};
-        } else {
-          debugPrint('Error: ${data['status']}');
-          return null;
-        }
-      } else {
-        debugPrint('Error: Failed to fetch data');
-        return null;
-      }
-    } catch (e) {
-      debugPrint('Error: $e');
-      return null;
-    }
-  }
-
-  Future<void> _fetchUserReports(String uid) async {
-    try {
-      final snapshot = await FirebaseDatabase.instance
-          .ref('reports')
-          .get()
-          .timeout(const Duration(seconds: 5));
-
-      if (snapshot.exists) {
-        final allReports = snapshot.value;
-        if (allReports is! Map) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _dataFetchError = false;
-              reportsByUser = {};
-            });
-          }
-          return;
-        }
-
-        Map<String, List<Map<String, dynamic>>> groupedReports = {};
-
-        for (var reportEntry in (allReports).entries) {
-          final reportId = reportEntry.key.toString();
-          final issueMap = reportEntry.value;
-
-          if (issueMap is! Map) continue;
-
-          for (var issueEntry in (issueMap).entries) {
-            final issue = issueEntry.key.toString();
-            final userMap = issueEntry.value;
-
-            if (userMap is! Map) continue;
-
-            for (var userEntry in (userMap).entries) {
-              final userId = userEntry.key.toString();
-              final data = userEntry.value;
-
-              if (userId == uid && data is Map) {
-                try {
-                  final email = data['email']?.toString() ?? 'unknown';
-                  final timestamp = data['timestamp']?.toString();
-
-                  groupedReports.putIfAbsent(email, () => []).add({
-                    'issue': issue,
-                    'userId': userId,
-                    'reportId': reportId,
-                    'timestamp': timestamp,
-                    'email': email,
-                  });
-
-                  if (!_placeDetailsMap.containsKey(reportId)) {
-                    Map<String, String>? placeDetails =
-                        await fetchPlaceDetails(reportId);
-                    if (placeDetails != null) {
-                      setState(() {
-                        _placeDetailsMap[reportId] = placeDetails;
-                      });
-                    }
-                  }
-                } catch (e) {
-                  debugPrint('Error processing report data: $e');
-                }
-              }
-            }
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            reportsByUser = groupedReports;
-            _isLoading = false;
-            _dataFetchError = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _dataFetchError = false;
-            reportsByUser = {};
-          });
-        }
-      }
-    } on TimeoutException {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _dataFetchError = true;
-        });
-      }
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        _fetchUserReports(uid);
-      }
-    } catch (e) {
-      debugPrint('Error fetching reports: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _dataFetchError = true;
-        });
-      }
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        _fetchUserReports(uid);
-      }
-    }
   }
 
   void _deletionConfirmation(Map<String, dynamic> report) {
@@ -218,6 +81,12 @@ class _ReportCardState extends State<ReportCard> {
                           }
                         });
 
+                        ReportService().notifyReportUpdate();
+
+                        if (widget.onReportRemoved != null) {
+                          widget.onReportRemoved!();
+                        }
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("Report deleted."),
@@ -264,9 +133,7 @@ class _ReportCardState extends State<ReportCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return Center(child: CircularProgressIndicator());
-    if (_dataFetchError) return Text("Error loading reports.");
-    if (reportsByUser.isEmpty) return Text("No reports found.");
+    if (widget.reportsByUser.isEmpty) return Text("No reports found.");
 
     return Column(
       children: reportsByUser.values.expand((reports) => reports).map((report) {
