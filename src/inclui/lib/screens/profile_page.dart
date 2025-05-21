@@ -25,7 +25,6 @@ class ProfilePageState extends State<ProfilePage> {
   String? _createdAt;
   bool _isLoading = true;
   bool _dataFetchError = false;
-  int _reportsCount = 0;
 
   @override
   void initState() {
@@ -50,7 +49,6 @@ class ProfilePageState extends State<ProfilePage> {
             _createdAt = null;
             _isLoading = true;
             _dataFetchError = false;
-            _reportsCount = 0;
           });
         }
         await _fetchUserData(user.uid);
@@ -61,7 +59,6 @@ class ProfilePageState extends State<ProfilePage> {
             _userName = null;
             _createdAt = null;
             _isLoading = false;
-            _reportsCount = 0;
           });
         }
       }
@@ -74,7 +71,7 @@ class ProfilePageState extends State<ProfilePage> {
           .child('users')
           .child(uid)
           .get()
-          .timeout(const Duration(seconds: 5));
+          .timeout(Duration(seconds: 5));
 
       if (snapshot.exists) {
         final data = Map<String, dynamic>.from(snapshot.value as Map);
@@ -90,7 +87,7 @@ class ProfilePageState extends State<ProfilePage> {
         if (mounted) {
           setState(() => _isLoading = false);
         }
-        await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(Duration(seconds: 1));
         if (mounted && _user != null) {
           _fetchUserData(_user!.uid);
         }
@@ -103,14 +100,14 @@ class ProfilePageState extends State<ProfilePage> {
         });
       }
     } catch (e) {
-      debugPrint('Error fetching user data: $e');
+      print('Error fetching user data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
           _dataFetchError = true;
         });
       }
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(Duration(seconds: 2));
       if (mounted && _user != null) {
         _fetchUserData(_user!.uid);
       }
@@ -136,14 +133,14 @@ class ProfilePageState extends State<ProfilePage> {
         await _user!.sendEmailVerification();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Verification email sent.'),
+            content: Text('Verification email sent.'),
             backgroundColor: Theme.of(context).primaryColor,
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      debugPrint(e.toString());
+      print(e.toString());
     }
   }
 
@@ -187,7 +184,7 @@ class ProfilePageState extends State<ProfilePage> {
                   color: Colors.black,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 maskedEmail,
                 textAlign: TextAlign.center,
@@ -197,7 +194,7 @@ class ProfilePageState extends State<ProfilePage> {
                   color: Colors.black,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () async {
                   await _user?.reload();
@@ -209,17 +206,17 @@ class ProfilePageState extends State<ProfilePage> {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text("Verification successful."),
+                        content: Text("Verification successful."),
                         backgroundColor: Theme.of(context).primaryColor,
-                        duration: const Duration(seconds: 2),
+                        duration: Duration(seconds: 2),
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text("Still not verified"),
+                        content: Text("Still not verified"),
                         backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 2),
+                        duration: Duration(seconds: 2),
                       ),
                     );
                   }
@@ -236,7 +233,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 0),
+              SizedBox(height: 0),
               TextButton(
                 onPressed: _sendVerificationEmail,
                 child: Text(
@@ -256,73 +253,61 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildUserReports() {
-    if (_user == null) return const SizedBox();
-    return ReportCard(
-      userId: _user!.uid,
-      key: ValueKey(_user!.uid),
-      onReportsCountChanged: (count) {
-        if (mounted) {
-          setState(() {
-            _reportsCount = count;
-          });
-        }
-      },
-    );
+    if (_user == null) return SizedBox();
+    return ReportCard(userId: _user!.uid);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: _isLoading
-          ? const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    backgroundColor: Colors.transparent,
-                    color: Colors.blue,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Setting up your profile...",
-                  ),
-                ],
-              ),
-            )
-          : _dataFetchError
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.error, color: Colors.red, size: 48),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Failed to load profile data",
-                        style: GoogleFonts.inter(),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_user != null) {
-                            setState(() {
-                              _isLoading = true;
-                              _dataFetchError = false;
-                            });
-                            _fetchUserData(_user!.uid);
-                          }
-                        },
-                        child: const Text("Retry"),
-                      ),
-                    ],
-                  ),
-                )
-              : (_user == null
-                  ? _buildLoggedOutView()
-                  : SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child: _isLoading
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                      color: Colors.blue,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Setting up your profile...",
+                      style: GoogleFonts.inter(),
+                    ),
+                  ],
+                ),
+              )
+            : _dataFetchError
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 48),
+                        SizedBox(height: 16),
+                        Text(
+                          "Failed to load profile data",
+                          style: GoogleFonts.inter(),
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_user != null) {
+                              setState(() {
+                                _isLoading = true;
+                                _dataFetchError = false;
+                              });
+                              _fetchUserData(_user!.uid);
+                            }
+                          },
+                          child: Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  )
+                : (_user != null
+                    ? Column(
                         children: [
                           _buildUserProfile(),
                           if (!_user!.emailVerified) _verifyAccount(),
@@ -331,30 +316,23 @@ class ProfilePageState extends State<ProfilePage> {
                               setState(() {});
                             },
                           ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 30.0),
-                            child: Text(
-                              "${_userName ?? 'User'}'s Reports",
+                          Text("${_userName ?? 'User'}'s Reports",
                               style: GoogleFonts.inter(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 16),
                           _buildUserReports(),
                         ],
-                      ),
-                    )),
+                      )
+                    : _buildLoggedOutView()),
+      ),
     );
   }
 
   Widget _buildUserProfile() {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -385,7 +363,7 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     if (_user != null && _user?.emailVerified == true) ...[
-                      const SizedBox(width: 5),
+                      SizedBox(width: 5),
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: Icon(
@@ -406,7 +384,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 15),
+                SizedBox(height: 15),
                 FutureBuilder<List<String>>(
                   future: AuthService.getUserPreferences(),
                   builder: (context, snapshot) {
@@ -447,7 +425,7 @@ class ProfilePageState extends State<ProfilePage> {
                     );
                   },
                 ),
-                const SizedBox(height: 15),
+                SizedBox(height: 15),
                 if (_createdAt != null)
                   Text(
                     formatDate(_createdAt!),
@@ -459,9 +437,7 @@ class ProfilePageState extends State<ProfilePage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 Text(
-                  _reportsCount == 0
-                      ? "No reports yet"
-                      : "$_reportsCount ${_reportsCount == 1 ? 'report' : 'reports'}",
+                  "No reports yet",
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -480,8 +456,8 @@ class ProfilePageState extends State<ProfilePage> {
   Widget _verifyAccount() {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(20),
@@ -497,7 +473,7 @@ class ProfilePageState extends State<ProfilePage> {
             color: Colors.pinkAccent,
             size: 25,
           ),
-          const SizedBox(width: 13),
+          SizedBox(width: 13),
           Expanded(
             child: Text(
               'Your account needs to be verified in order to leave reviews.',
@@ -507,7 +483,7 @@ class ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           ElevatedButton(
             onPressed: () async {
               _sendVerificationEmail();
@@ -516,7 +492,7 @@ class ProfilePageState extends State<ProfilePage> {
             style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 15)),
+                padding: EdgeInsets.symmetric(horizontal: 15)),
             child: Text(
               'Verify Now',
               style: GoogleFonts.inter(
@@ -532,37 +508,34 @@ class ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLoggedOutView() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'You are not logged in. \nLog in to access exclusive features.',
-              textAlign: TextAlign.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'You are not logged in. \nLog in to access exclusive features.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _redirectToLogin,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Login',
               style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _redirectToLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(
-                'Login',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

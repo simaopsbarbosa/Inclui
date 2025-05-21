@@ -10,13 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ReportCard extends StatefulWidget {
   final String userId;
-  final Function(int)? onReportsCountChanged;
 
-  const ReportCard({
-    required this.userId,
-    this.onReportsCountChanged,
-    super.key,
-  });
+  const ReportCard({required this.userId, super.key});
 
   @override
   State<ReportCard> createState() => _ReportCardState();
@@ -27,23 +22,11 @@ class _ReportCardState extends State<ReportCard> {
   bool _dataFetchError = false;
   Map<String, List<Map<String, dynamic>>> reportsByUser = {};
   Map<String, Map<String, String>> _placeDetailsMap = {};
-  StreamSubscription<DatabaseEvent>? _reportsSubscription;
 
   @override
   void initState() {
     super.initState();
-    _setupReportsListener(widget.userId);
-  }
-
-  @override
-  void dispose() {
-    _reportsSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _updateReportsCount() {
-    final count = reportsByUser.values.expand((reports) => reports).length;
-    widget.onReportsCountChanged?.call(count);
+    _fetchUserReports(widget.userId);
   }
 
   Future<Map<String, String>?> fetchPlaceDetails(String placeId) async {
@@ -78,33 +61,13 @@ class _ReportCardState extends State<ReportCard> {
     }
   }
 
-  void _setupReportsListener(String uid) {
-    final reportsRef = FirebaseDatabase.instance.ref('reports');
-
-    _reportsSubscription = reportsRef.onValue.listen((event) {
-      if (mounted) {
-        setState(() {
-          _isLoading = true;
-        });
-      }
-      _processReportsData(event.snapshot, uid);
-    }, onError: (error) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _dataFetchError = true;
-        });
-      }
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted) {
-          _setupReportsListener(uid);
-        }
-      });
-    });
-  }
-
-  Future<void> _processReportsData(DataSnapshot snapshot, String uid) async {
+  Future<void> _fetchUserReports(String uid) async {
     try {
+      final snapshot = await FirebaseDatabase.instance
+          .ref('reports')
+          .get()
+          .timeout(const Duration(seconds: 5));
+
       if (snapshot.exists) {
         final allReports = snapshot.value;
         if (allReports is! Map) {
@@ -114,13 +77,11 @@ class _ReportCardState extends State<ReportCard> {
               _dataFetchError = false;
               reportsByUser = {};
             });
-            _updateReportsCount();
           }
           return;
         }
 
         Map<String, List<Map<String, dynamic>>> groupedReports = {};
-        List<String> placeIdsToFetch = [];
 
         for (var reportEntry in (allReports).entries) {
           final reportId = reportEntry.key.toString();
@@ -152,7 +113,13 @@ class _ReportCardState extends State<ReportCard> {
                   });
 
                   if (!_placeDetailsMap.containsKey(reportId)) {
-                    placeIdsToFetch.add(reportId);
+                    Map<String, String>? placeDetails =
+                        await fetchPlaceDetails(reportId);
+                    if (placeDetails != null) {
+                      setState(() {
+                        _placeDetailsMap[reportId] = placeDetails;
+                      });
+                    }
                   }
                 } catch (e) {
                   debugPrint('Error processing report data: $e');
@@ -162,17 +129,12 @@ class _ReportCardState extends State<ReportCard> {
           }
         }
 
-        if (placeIdsToFetch.isNotEmpty) {
-          await _fetchMissingPlaceDetails(placeIdsToFetch);
-        }
-
         if (mounted) {
           setState(() {
             reportsByUser = groupedReports;
             _isLoading = false;
             _dataFetchError = false;
           });
-          _updateReportsCount();
         }
       } else {
         if (mounted) {
@@ -181,29 +143,30 @@ class _ReportCardState extends State<ReportCard> {
             _dataFetchError = false;
             reportsByUser = {};
           });
-          _updateReportsCount();
         }
       }
-    } catch (e) {
-      debugPrint('Error processing reports: $e');
+    } on TimeoutException {
       if (mounted) {
         setState(() {
           _isLoading = false;
           _dataFetchError = true;
         });
       }
-    }
-  }
-
-  Future<void> _fetchMissingPlaceDetails(List<String> placeIds) async {
-    for (final placeId in placeIds) {
-      if (_placeDetailsMap.containsKey(placeId)) continue;
-
-      Map<String, String>? placeDetails = await fetchPlaceDetails(placeId);
-      if (placeDetails != null && mounted) {
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        _fetchUserReports(uid);
+      }
+    } catch (e) {
+      debugPrint('Error fetching reports: $e');
+      if (mounted) {
         setState(() {
-          _placeDetailsMap[placeId] = placeDetails;
+          _isLoading = false;
+          _dataFetchError = true;
         });
+      }
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        _fetchUserReports(uid);
       }
     }
   }
@@ -246,19 +209,26 @@ class _ReportCardState extends State<ReportCard> {
                         );
 
                         await reportRef.remove();
-                        _updateReportsCount();
+
+                        setState(() {
+                          reportsByUser[report['email']]?.remove(report);
+                          if (reportsByUser[report['email']]?.isEmpty ??
+                              false) {
+                            reportsByUser.remove(report['email']);
+                          }
+                        });
 
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text("Report deleted."),
-                            backgroundColor: Colors.green,
+                            backgroundColor: Theme.of(context).primaryColor,
                             duration: Duration(seconds: 3),
                           ),
                         );
                       } catch (e) {
-                        debugPrint("Failed to delete report: $e");
+                        print("Failed to delete report: $e");
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text("Failed to delete report."),
                             backgroundColor: Colors.red,
                             duration: Duration(seconds: 3),
@@ -267,31 +237,21 @@ class _ReportCardState extends State<ReportCard> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColorDark,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                      ),
-                    ),
-                    child: Text(
-                      "Delete",
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
-                    ),
+                        backgroundColor: Theme.of(context).primaryColorDark,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 15)),
+                    child: Text("Delete",
+                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold, fontSize: 17)),
                   ),
                   const SizedBox(width: 14),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      "Cancel",
-                      style: GoogleFonts.inter(
-                        color: Colors.pinkAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
-                    ),
+                    child: Text("Cancel",
+                        style: GoogleFonts.inter(
+                            color: Colors.pinkAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17)),
                   ),
                 ],
               ),
@@ -304,15 +264,9 @@ class _ReportCardState extends State<ReportCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_dataFetchError) {
-      return const Text("Error loading reports.");
-    }
-    if (reportsByUser.isEmpty) {
-      return const SizedBox();
-    }
+    if (_isLoading) return Center(child: CircularProgressIndicator());
+    if (_dataFetchError) return Text("Error loading reports.");
+    if (reportsByUser.isEmpty) return Text("No reports found.");
 
     return Column(
       children: reportsByUser.values.expand((reports) => reports).map((report) {
@@ -320,8 +274,8 @@ class _ReportCardState extends State<ReportCard> {
         final placeDetails = _placeDetailsMap[placeId];
         return Container(
           width: double.infinity,
-          margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-          padding: const EdgeInsets.all(20),
+          margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
+          padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(20),
@@ -329,26 +283,22 @@ class _ReportCardState extends State<ReportCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                placeDetails?['name'] ?? '',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 4),
+              Text(placeDetails?['name'] ?? '',
+                  style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20)),
+              SizedBox(height: 4),
               Text(placeDetails?['address'] ?? '',
                   style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Text(
-                "Created on ${DateFormat('dd/MM/yyyy - HH:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(report['timestamp'].toString())))}",
-                style: GoogleFonts.inter(color: Colors.white, fontSize: 10),
-              ),
-              const SizedBox(height: 4),
+                  "Created on ${DateFormat('dd/MM/yyyy - HH:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(report['timestamp'].toString())))}",
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 10)),
+              SizedBox(height: 4),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.pinkAccent,
                   borderRadius: BorderRadius.circular(20),
@@ -356,48 +306,37 @@ class _ReportCardState extends State<ReportCard> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 10),
-                          Icon(
-                            accessibilityIssues[report['issue']] ?? Icons.error,
-                            color: Colors.white,
-                            size: 25,
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Accessibility Issue",
-                                    style: GoogleFonts.inter(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15)),
-                                const SizedBox(height: 0),
-                                Text(
-                                  report['issue'],
-                                  style: GoogleFonts.inter(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 13),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SizedBox(width: 10),
+                        Icon(accessibilityIssues[report['issue']],
+                            color: Colors.white, size: 25),
+                        SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Accessibility Issue",
+                                style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15)),
+                            SizedBox(height: 0),
+                            Text(report['issue'],
+                                style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13)),
+                          ],
+                        ),
+                      ],
                     ),
                     IconButton(
-                      onPressed: () {
-                        _deletionConfirmation(report);
-                      },
-                      icon: const Icon(Icons.delete_forever,
-                          color: Colors.white, size: 35),
-                    ),
+                        onPressed: () {
+                          _deletionConfirmation(report);
+                        },
+                        icon: Icon(Icons.delete_forever,
+                            color: Colors.white, size: 35)),
                   ],
                 ),
               ),
