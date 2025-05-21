@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:inclui/utils/pin_issue_utils.dart';
+import 'package:inclui/services/pin_issue_utils.dart';
 
 void main() {
   group('chooseIssueForPin', () {
