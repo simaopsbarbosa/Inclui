@@ -201,7 +201,7 @@ class _ReportIssueModalState extends State<ReportIssueModal> {
                             style: GoogleFonts.inter(),
                           ),
                           backgroundColor: Colors.redAccent,
-                          duration: const Duration(seconds: 2),
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                       Navigator.of(context).pop(tempSelected);
@@ -214,9 +214,9 @@ class _ReportIssueModalState extends State<ReportIssueModal> {
                     });
 
                     ReportService().notifyReportUpdate();
-                    
+
                     Navigator.of(context).pop(tempSelected);
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(

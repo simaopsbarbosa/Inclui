@@ -140,8 +140,17 @@ class _ReportCardState extends State<ReportCard> {
   Widget build(BuildContext context) {
     if (widget.reportsByUser.isEmpty) return Container();
 
+    final allReports =
+        reportsByUser.values.expand((reports) => reports).toList();
+    allReports.sort((a, b) {
+      final int timestampA = int.parse(a['timestamp'].toString());
+      final int timestampB = int.parse(b['timestamp'].toString());
+      return timestampB
+          .compareTo(timestampA);
+    });
+
     return Column(
-      children: reportsByUser.values.expand((reports) => reports).map((report) {
+      children: allReports.map((report) {
         final placeId = report['reportId'];
         final placeDetails = _placeDetailsMap[placeId];
         return Container(
