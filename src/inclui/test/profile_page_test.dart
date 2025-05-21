@@ -19,4 +19,16 @@ void main() {
       expect(formatDate(''), '');
     });
   });
+
+  group('maskEmail', () {
+    test('masks email with more than 2 characters before @', () {
+      final result = maskEmail('dinis@example.com');
+      expect(result, 'di***@example.com');
+    });
+
+    test('masks email with exactly 2 characters before @', () {
+      final result = maskEmail('ab@x.pt');
+      expect(result, 'ab@x.pt');
+    });
+  });
 }

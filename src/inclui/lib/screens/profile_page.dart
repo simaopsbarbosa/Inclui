@@ -143,13 +143,6 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  String maskEmail(String email) {
-    final parts = email.split('@');
-    final visible = parts[0].substring(0, 2);
-    final masked = '*' * (parts[0].length - 2);
-    return '$visible$masked@${parts[1]}';
-  }
-
   void _verifyAccountAction() async {
     final user = AuthService.currentUser;
     final email = user?.email ?? '';
@@ -526,6 +519,13 @@ class ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
+
+String maskEmail(String email) {
+    final parts = email.split('@');
+    final visible = parts[0].substring(0, 2);
+    final masked = '*' * (parts[0].length - 2);
+    return '$visible$masked@${parts[1]}';
 }
 
 String formatDate(String isoDate) {
