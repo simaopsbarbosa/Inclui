@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclui/constants.dart';
 import 'package:inclui/services/auth_service.dart';
@@ -41,12 +42,33 @@ class HomePageState extends State<HomePage> {
   late Future<Position> _positionFuture;
   final Set<Marker> _markers = {};
   bool _isLoading = false;
+  String _greeting = "Welcome!";
 
   @override
   void initState() {
     super.initState();
     _positionFuture = _determinePosition();
     _fetchReports();
+    _setupAuthListener();
+  }
+
+  void _setupAuthListener() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      _updateGreeting();
+    });
+
+    FirebaseAuth.instance.userChanges().listen((User? user) {
+      _updateGreeting();
+    });
+
+    _updateGreeting();
+  }
+
+  Future<void> _updateGreeting() async {
+    String greeting = await AuthService.getFormattedUserName();
+    setState(() {
+      _greeting = greeting;
+    });
   }
 
   Future<LatLng> _getLatLngFromPlaceId(String placeId) async {
@@ -227,7 +249,7 @@ class HomePageState extends State<HomePage> {
                 children: [
                   SizedBox(height: 10),
                   Text(
-                    'Hello, Simão',
+                    _greeting,
                     style: GoogleFonts.inter(
                       fontSize: 30,
                       color: Colors.black,

@@ -35,6 +35,8 @@ class AuthService {
           'email': email,
           'createdAt': now,
         });
+
+        await user.reload();
       }
     } catch (e) {
       print('Error during sign-up: $e');
@@ -91,5 +93,39 @@ class AuthService {
     }
 
     return [];
+  }
+
+  static Future<String?> getUserName() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    final snapshot = await _database.ref('users/${user.uid}/name').get();
+
+    if (snapshot.exists) {
+      return snapshot.value as String;
+    }
+
+    return null;
+  }
+
+  static Future<String> getFormattedUserName() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return "Welcome!";
+    }
+
+    final snapshot = await _database.ref('users/${user.uid}/name').get();
+
+    String? fullName;
+    if (snapshot.exists) {
+      fullName = snapshot.value as String?;
+    }
+
+    if (fullName == null || fullName.isEmpty) {
+      return "Welcome!";
+    }
+
+    final String firstName = fullName.split(' ')[0];
+    return "Hello, $firstName";
   }
 }
