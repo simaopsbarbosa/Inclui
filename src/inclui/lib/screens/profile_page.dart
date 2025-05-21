@@ -327,16 +327,16 @@ class ProfilePageState extends State<ProfilePage> {
                           if (!_user!.emailVerified) _verifyAccount(),
                           UserPreferencesModal(
                             onPreferencesUpdated: () {
-                            setState(() {});
+                              setState(() {});
                             },
                           ),
                           if (_reportsCount > 0) ...[
-                          Text("${_userName ?? 'User'}'s Reports",
-                            style: GoogleFonts.inter(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          _buildUserReports(),
-                          const SizedBox(height: 24),
+                            Text("${_userName ?? 'User'}'s Reports",
+                                style: GoogleFonts.inter(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 16),
+                            _buildUserReports(),
+                            const SizedBox(height: 24),
                           ],
                         ],
                       )
