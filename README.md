@@ -276,7 +276,4 @@ End of Sprint 2:
 Start of Sprint 3:
 ![image](https://github.com/user-attachments/assets/f31d8a64-8573-435b-b427-b453b95f9b83)
 
-
-### Sprint 4
-
 ### Final Release
