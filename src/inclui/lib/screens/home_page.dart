@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:http/http.dart' as http;
@@ -205,7 +206,7 @@ class HomePageState extends State<HomePage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            color: Colors.white,
+            color: Colors.grey.shade100,
             child: Center(
               child: CircularProgressIndicator(
                 color: Theme.of(context).primaryColor,
@@ -217,54 +218,103 @@ class HomePageState extends State<HomePage> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
           Position userLocation = snapshot.data!;
-          return Stack(
-            children: [
-              GoogleMap(
-                key: ValueKey('google_map'),
-                markers: _markers,
-                myLocationEnabled: true,
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(userLocation.latitude, userLocation.longitude),
-                  zoom: 18.0,
-                ),
-              ),
-              Positioned(
-                bottom: 10,
-                right: 75,
-                child: PhysicalModel(
-                  color: Colors.transparent,
-                  elevation: 2.0,
-                  shadowColor: Colors.black87,
-                  shape: BoxShape.circle,
-                  child: ClipOval(
-                    child: Material(
-                      color: _isLoading
-                          ? Colors.white
-                          : Theme.of(context).primaryColor,
-                      child: InkWell(
-                        onTap: _isLoading ? null : _fetchReports,
-                        child: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: Center(
-                            child: _isLoading
-                                ? CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.grey.shade600,
+          return Container(
+            color: Colors.grey.shade100,
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10),
+                  Text(
+                    'Hello, Simão',
+                    style: GoogleFonts.inter(
+                      fontSize: 30,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    'Discover accessible places around you',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 30),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1.0,
+                        ),
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20.0),
+                        child: Stack(
+                          children: [
+                            GoogleMap(
+                              key: ValueKey('google_map'),
+                              markers: _markers,
+                              myLocationEnabled: true,
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(userLocation.latitude,
+                                    userLocation.longitude),
+                                zoom: 18.0,
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 10,
+                              right: 75,
+                              child: PhysicalModel(
+                                color: Colors.transparent,
+                                elevation: 2.0,
+                                shadowColor: Colors.black87,
+                                shape: BoxShape.circle,
+                                child: ClipOval(
+                                  child: Material(
+                                    color: _isLoading
+                                        ? Colors.white
+                                        : Theme.of(context).primaryColor,
+                                    child: InkWell(
+                                      onTap: _isLoading ? null : _fetchReports,
+                                      child: SizedBox(
+                                        width: 56,
+                                        height: 56,
+                                        child: Center(
+                                          child: _isLoading
+                                              ? CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(
+                                                    Colors.grey.shade600,
+                                                  ),
+                                                )
+                                              : Icon(Icons.refresh,
+                                                  color: Colors.white),
+                                        ),
+                                      ),
                                     ),
-                                  )
-                                : Icon(Icons.refresh, color: Colors.white),
-                          ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           );
         } else {
-          return Center(child: Text('No location data available'));
+          return Container(
+            color: Colors.grey.shade100,
+            child: Center(child: Text('No location data available')),
+          );
         }
       },
     );
