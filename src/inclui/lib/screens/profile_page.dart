@@ -274,54 +274,55 @@ class ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: SingleChildScrollView(
-        child: _isLoading
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      backgroundColor: Colors.transparent,
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Setting up your profile...",
-                      style: GoogleFonts.inter(),
-                    ),
-                  ],
-                ),
-              )
-            : _dataFetchError
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.error, color: Colors.red, size: 48),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Failed to load profile data",
-                          style: GoogleFonts.inter(),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_user != null) {
-                              setState(() {
-                                _isLoading = true;
-                                _dataFetchError = false;
-                              });
-                              _fetchUserData(_user!.uid);
-                            }
-                          },
-                          child: const Text("Retry"),
-                        ),
-                      ],
-                    ),
-                  )
-                : _user != null
-                    ? Column(
+      body: _isLoading
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    color: Colors.blue,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Setting up your profile...",
+                  ),
+                ],
+              ),
+            )
+          : _dataFetchError
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error, color: Colors.red, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Failed to load profile data",
+                        style: GoogleFonts.inter(),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_user != null) {
+                            setState(() {
+                              _isLoading = true;
+                              _dataFetchError = false;
+                            });
+                            _fetchUserData(_user!.uid);
+                          }
+                        },
+                        child: const Text("Retry"),
+                      ),
+                    ],
+                  ),
+                )
+              : (_user == null
+                  ? _buildLoggedOutView()
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildUserProfile(),
                           if (!_user!.emailVerified) _verifyAccount(),
@@ -330,20 +331,22 @@ class ProfilePageState extends State<ProfilePage> {
                               setState(() {});
                             },
                           ),
-                          if (_reportsCount > 0) ...[
-                            Text("${_userName ?? 'User'}'s Reports",
-                                style: GoogleFonts.inter(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 16),
-                            _buildUserReports(),
-                            const SizedBox(height: 24),
-                          ],
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: Text(
+                              "${_userName ?? 'User'}'s Reports",
+                              style: GoogleFonts.inter(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildUserReports(),
                         ],
-                      )
-                    : Center(
-                        child: _buildLoggedOutView(),
                       ),
-      ),
+                    )),
     );
   }
 
@@ -529,34 +532,37 @@ class ProfilePageState extends State<ProfilePage> {
 
   Widget _buildLoggedOutView() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'You are not logged in. \nLog in to access exclusive features.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _redirectToLogin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(
-              'Login',
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'You are not logged in. \nLog in to access exclusive features.',
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _redirectToLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'Login',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

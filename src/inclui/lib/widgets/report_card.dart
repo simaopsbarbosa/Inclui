@@ -267,21 +267,31 @@ class _ReportCardState extends State<ReportCard> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColorDark,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 15)),
-                    child: Text("Delete",
-                        style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold, fontSize: 17)),
+                      backgroundColor: Theme.of(context).primaryColorDark,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                      ),
+                    ),
+                    child: Text(
+                      "Delete",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 14),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text("Cancel",
-                        style: GoogleFonts.inter(
-                            color: Colors.pinkAccent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17)),
+                    child: Text(
+                      "Cancel",
+                      style: GoogleFonts.inter(
+                        color: Colors.pinkAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -319,18 +329,22 @@ class _ReportCardState extends State<ReportCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(placeDetails?['name'] ?? '',
-                  style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20)),
+              Text(
+                placeDetails?['name'] ?? '',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(placeDetails?['address'] ?? '',
                   style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
               const SizedBox(height: 10),
               Text(
-                  "Created on ${DateFormat('dd/MM/yyyy - HH:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(report['timestamp'].toString())))}",
-                  style: GoogleFonts.inter(color: Colors.white, fontSize: 10)),
+                "Created on ${DateFormat('dd/MM/yyyy - HH:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(report['timestamp'].toString())))}",
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 10),
+              ),
               const SizedBox(height: 4),
               Container(
                 width: double.infinity,
@@ -342,36 +356,48 @@ class _ReportCardState extends State<ReportCard> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const SizedBox(width: 10),
-                        Icon(accessibilityIssues[report['issue']],
-                            color: Colors.white, size: 25),
-                        const SizedBox(width: 20),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Accessibility Issue",
-                                style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15)),
-                            const SizedBox(height: 0),
-                            Text(report['issue'],
-                                style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13)),
-                          ],
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 10),
+                          Icon(
+                            accessibilityIssues[report['issue']] ?? Icons.error,
+                            color: Colors.white,
+                            size: 25,
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Accessibility Issue",
+                                    style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15)),
+                                const SizedBox(height: 0),
+                                Text(
+                                  report['issue'],
+                                  style: GoogleFonts.inter(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(
-                        onPressed: () {
-                          _deletionConfirmation(report);
-                        },
-                        icon: const Icon(Icons.delete_forever,
-                            color: Colors.white, size: 35)),
+                      onPressed: () {
+                        _deletionConfirmation(report);
+                      },
+                      icon: const Icon(Icons.delete_forever,
+                          color: Colors.white, size: 35),
+                    ),
                   ],
                 ),
               ),
