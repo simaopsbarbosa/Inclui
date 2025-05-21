@@ -12,7 +12,7 @@ import 'package:inclui/services/auth_service.dart';
 import 'package:inclui/services/report_service.dart';
 import 'package:inclui/widgets/circle_icon.dart';
 import 'package:inclui/widgets/user_preferences_modal.dart';
-import 'package:inclui/widgets/report_card.dart';
+import 'package:inclui/widgets/report_history_card.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {

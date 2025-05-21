@@ -64,6 +64,15 @@ class _ReportCardState extends State<ReportCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text("Cancel",
+                        style: GoogleFonts.inter(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17)),
+                  ),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(context);
@@ -107,25 +116,18 @@ class _ReportCardState extends State<ReportCard> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
+                      backgroundColor: Colors.pinkAccent,
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(horizontal: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text("Delete",
-                        style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold, fontSize: 17)),
-                  ),
-                  const SizedBox(width: 10),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text("Cancel",
-                        style: GoogleFonts.inter(
-                            color: Colors.pinkAccent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17)),
+                    child: Text(
+                      "Delete",
+                      style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold, fontSize: 17),
+                    ),
                   ),
                 ],
               ),
@@ -145,8 +147,7 @@ class _ReportCardState extends State<ReportCard> {
     allReports.sort((a, b) {
       final int timestampA = int.parse(a['timestamp'].toString());
       final int timestampB = int.parse(b['timestamp'].toString());
-      return timestampB
-          .compareTo(timestampA);
+      return timestampB.compareTo(timestampA);
     });
 
     return Column(
