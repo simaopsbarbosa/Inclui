@@ -23,5 +23,4 @@ final Map<String, IconData> accessibilityIssues = {
   'No guide dog access': FontAwesomeIcons.dog,
   'App-only ordering': FontAwesomeIcons.mobileScreen,
   'Staff not trained in accessibility': FontAwesomeIcons.userGear,
-  'default': FontAwesomeIcons.question,
 };

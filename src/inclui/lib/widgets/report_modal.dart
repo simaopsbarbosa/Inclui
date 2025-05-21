@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:inclui/services/auth_service.dart';
+import 'package:inclui/services/report_service.dart';
 import 'package:inclui/constants.dart';
 import 'package:inclui/widgets/circle_icon.dart';
 
@@ -200,7 +201,7 @@ class _ReportIssueModalState extends State<ReportIssueModal> {
                             style: GoogleFonts.inter(),
                           ),
                           backgroundColor: Colors.redAccent,
-                          duration: const Duration(seconds: 2),
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                       Navigator.of(context).pop(tempSelected);
@@ -211,6 +212,8 @@ class _ReportIssueModalState extends State<ReportIssueModal> {
                       'timestamp': ServerValue.timestamp,
                       'email': email,
                     });
+
+                    ReportService().notifyReportUpdate();
 
                     Navigator.of(context).pop(tempSelected);
 
