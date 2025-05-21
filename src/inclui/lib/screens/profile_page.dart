@@ -301,7 +301,7 @@ class ProfilePageState extends State<ProfilePage> {
           SnackBar(
             content: Text('Verification email sent.'),
             backgroundColor: Theme.of(context).primaryColor,
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 1),
           ),
         );
       }
@@ -374,7 +374,7 @@ class ProfilePageState extends State<ProfilePage> {
                       SnackBar(
                         content: Text("Verification successful."),
                         backgroundColor: Theme.of(context).primaryColor,
-                        duration: Duration(seconds: 2),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                   } else {
@@ -382,7 +382,7 @@ class ProfilePageState extends State<ProfilePage> {
                       SnackBar(
                         content: Text("Still not verified"),
                         backgroundColor: Colors.red,
-                        duration: Duration(seconds: 2),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                   }
@@ -485,91 +485,85 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<void> _refreshData() async {
-    if (_user != null) {
-      setState(() {
-        _isLoading = true;
-        _dataFetchError = false;
-        _isLoadingReports = true;
-        _reportsDataFetchError = false;
-      });
-      await _fetchUserData(_user!.uid);
-      await _fetchUserReports(_user!.uid);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        color: Theme.of(context).primaryColor,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: _isLoading
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(
-                        backgroundColor: Colors.transparent,
-                        color: Colors.blue,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        "Setting up your profile...",
-                        style: GoogleFonts.inter(),
-                      ),
-                    ],
-                  ),
-                )
-              : _dataFetchError
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+      body: SingleChildScrollView(
+        child: _isLoading
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                      color: Colors.blue,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Setting up your profile...",
+                      style: GoogleFonts.inter(),
+                    ),
+                  ],
+                ),
+              )
+            : _dataFetchError
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 48),
+                        SizedBox(height: 16),
+                        Text(
+                          "Failed to load profile data",
+                          style: GoogleFonts.inter(),
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_user != null) {
+                              setState(() {
+                                _isLoading = true;
+                                _dataFetchError = false;
+                              });
+                              _fetchUserData(_user!.uid);
+                            }
+                          },
+                          child: Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  )
+                : (_user != null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.error, color: Colors.red, size: 48),
-                          SizedBox(height: 16),
-                          Text(
-                            "Failed to load profile data",
-                            style: GoogleFonts.inter(),
-                          ),
-                          SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (_user != null) {
-                                setState(() {
-                                  _isLoading = true;
-                                  _dataFetchError = false;
-                                });
-                                _fetchUserData(_user!.uid);
-                              }
+                          _buildUserProfile(),
+                          if (!_user!.emailVerified) _verifyAccount(),
+                          UserPreferencesModal(
+                            onPreferencesUpdated: () {
+                              setState(() {});
                             },
-                            child: Text("Retry"),
                           ),
-                        ],
-                      ),
-                    )
-                  : (_user != null
-                      ? Column(
-                          children: [
-                            _buildUserProfile(),
-                            if (!_user!.emailVerified) _verifyAccount(),
-                            UserPreferencesModal(
-                              onPreferencesUpdated: () {
-                                setState(() {});
-                              },
-                            ),
-                            Text("${_userName ?? 'User'}'s Reports",
+                          if (_reportsByUser.values.fold<int>(
+                                  0, (sum, list) => sum + list.length) >
+                              0)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 30.0),
+                              child: Text(
+                                "Previous Reports",
                                 style: GoogleFonts.inter(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            SizedBox(height: 16),
-                            _buildUserReports(),
-                          ],
-                        )
-                      : _buildLoggedOutView()),
-        ),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          SizedBox(height: 10),
+                          _buildUserReports(),
+                          SizedBox(height: 10),
+                        ],
+                      )
+                    : _buildLoggedOutView()),
       ),
     );
   }

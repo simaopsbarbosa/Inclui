@@ -93,7 +93,7 @@ class HomePageState extends State<HomePage> {
     final snapshot = await dbRef.get();
 
     final CircleIcon fallbackIcon = CircleIcon(
-      icon: accessibilityIssues['default'] ?? Icons.error,
+      icon: Icons.error,
       size: 100.0,
       iconColor: Colors.white,
       backgroundColor: Theme.of(context).primaryColor,
@@ -145,9 +145,7 @@ class HomePageState extends State<HomePage> {
       chosenType = topGeneral.first;
     }
     return CircleIcon(
-      icon: accessibilityIssues[chosenType] ??
-          accessibilityIssues['default'] ??
-          Icons.error,
+      icon: accessibilityIssues[chosenType] ?? Icons.error,
       size: usedPrefereces ? 100.0 : 80.0,
       backgroundColor:
           usedPrefereces ? Theme.of(context).primaryColor : Colors.white,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:inclui/services/auth_service.dart';
+import 'package:inclui/services/report_service.dart';
 import 'package:inclui/constants.dart';
 import 'package:inclui/widgets/circle_icon.dart';
 
@@ -212,8 +213,10 @@ class _ReportIssueModalState extends State<ReportIssueModal> {
                       'email': email,
                     });
 
+                    ReportService().notifyReportUpdate();
+                    
                     Navigator.of(context).pop(tempSelected);
-
+                    
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(

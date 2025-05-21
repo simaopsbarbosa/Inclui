@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:inclui/constants.dart';
 import 'package:inclui/services/report_service.dart';
 import 'package:intl/intl.dart';
@@ -41,18 +42,18 @@ class _ReportCardState extends State<ReportCard> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         backgroundColor: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 25),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("Confirm Deletion",
                   style: GoogleFonts.inter(
-                    fontSize: 23,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   )),
-              const SizedBox(height: 8),
-              Text("Are you sure you want to delete this report?",
+              const SizedBox(height: 4),
+              Text("Are you sure you want \nto delete this report?",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 12,
@@ -91,7 +92,7 @@ class _ReportCardState extends State<ReportCard> {
                           SnackBar(
                             content: Text("Report deleted."),
                             backgroundColor: Theme.of(context).primaryColor,
-                            duration: Duration(seconds: 3),
+                            duration: Duration(seconds: 1),
                           ),
                         );
                       } catch (e) {
@@ -100,20 +101,24 @@ class _ReportCardState extends State<ReportCard> {
                           SnackBar(
                             content: Text("Failed to delete report."),
                             backgroundColor: Colors.red,
-                            duration: Duration(seconds: 3),
+                            duration: Duration(seconds: 1),
                           ),
                         );
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColorDark,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 15)),
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     child: Text("Delete",
                         style: GoogleFonts.inter(
                             fontWeight: FontWeight.bold, fontSize: 17)),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 10),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text("Cancel",
@@ -133,7 +138,7 @@ class _ReportCardState extends State<ReportCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.reportsByUser.isEmpty) return Text("No reports found.");
+    if (widget.reportsByUser.isEmpty) return Container();
 
     return Column(
       children: reportsByUser.values.expand((reports) => reports).map((report) {
@@ -144,66 +149,140 @@ class _ReportCardState extends State<ReportCard> {
           margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
           padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.grey.shade300,
+              width: 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(placeDetails?['name'] ?? '',
-                  style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20)),
-              SizedBox(height: 4),
-              Text(placeDetails?['address'] ?? '',
-                  style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
-              SizedBox(height: 10),
-              Text(
-                  "Created on ${DateFormat('dd/MM/yyyy - HH:mm').format(DateTime.fromMillisecondsSinceEpoch(int.parse(report['timestamp'].toString())))}",
-                  style: GoogleFonts.inter(color: Colors.white, fontSize: 10)),
-              SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          placeDetails?['name'] ?? '',
+                          style: GoogleFonts.inter(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          placeDetails?['address'] ?? '',
+                          style: GoogleFonts.inter(
+                            color: Colors.black,
+                            fontSize: 12,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 0),
+                    child: InkWell(
+                      onTap: () {
+                        _deletionConfirmation(report);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          FontAwesomeIcons.squareXmark,
+                          color: Colors.pinkAccent,
+                          size: 25,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.pinkAccent,
-                  borderRadius: BorderRadius.circular(20),
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(width: 10),
-                        Icon(accessibilityIssues[report['issue']],
-                            color: Colors.white, size: 25),
-                        SizedBox(width: 20),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Accessibility Issue",
-                                style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15)),
-                            SizedBox(height: 0),
-                            Text(report['issue'],
-                                style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 13)),
-                          ],
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: Icon(
+                              accessibilityIssues[report['issue']],
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              report['issue'],
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          )
+                        ],
+                      ),
                     ),
-                    IconButton(
-                        onPressed: () {
-                          _deletionConfirmation(report);
-                        },
-                        icon: Icon(Icons.delete_forever,
-                            color: Colors.white, size: 35)),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 15.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            DateFormat('HH:mm').format(
+                              DateTime.fromMillisecondsSinceEpoch(
+                                int.parse(
+                                  report['timestamp'].toString(),
+                                ),
+                              ),
+                            ),
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            DateFormat('dd/MM/yyyy').format(
+                              DateTime.fromMillisecondsSinceEpoch(
+                                int.parse(
+                                  report['timestamp'].toString(),
+                                ),
+                              ),
+                            ),
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
