@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclui/constants.dart';
 import 'package:intl/intl.dart';
@@ -46,9 +47,8 @@ class _ReportCardState extends State<ReportCard> {
   }
 
   Future<Map<String, String>?> fetchPlaceDetails(String placeId) async {
-    const String apiKey = 'AIzaSyCVfqPIhXOBYpi40pRZeaxICq-ZWhEgLcE';
     final String url =
-        'https://maps.googleapis.com/maps/api/place/details/json?placeid=$placeId&key=$apiKey';
+        'https://maps.googleapis.com/maps/api/place/details/json?placeid=$placeId&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -59,7 +59,8 @@ class _ReportCardState extends State<ReportCard> {
         if (data['status'] == 'OK') {
           final result = data['result'];
           final String name = result['name'] ?? 'Unknown Place';
-          final String address = result['formatted_address'] ?? 'Unknown Address';
+          final String address =
+              result['formatted_address'] ?? 'Unknown Address';
           String cleanedAddress = address.replaceAll('s/n, ', '').trim();
 
           return {'name': name, 'address': cleanedAddress};
@@ -79,7 +80,7 @@ class _ReportCardState extends State<ReportCard> {
 
   void _setupReportsListener(String uid) {
     final reportsRef = FirebaseDatabase.instance.ref('reports');
-    
+
     _reportsSubscription = reportsRef.onValue.listen((event) {
       if (mounted) {
         setState(() {
@@ -121,19 +122,19 @@ class _ReportCardState extends State<ReportCard> {
         Map<String, List<Map<String, dynamic>>> groupedReports = {};
         List<String> placeIdsToFetch = [];
 
-        for (var reportEntry in (allReports as Map).entries) {
+        for (var reportEntry in (allReports).entries) {
           final reportId = reportEntry.key.toString();
           final issueMap = reportEntry.value;
 
           if (issueMap is! Map) continue;
 
-          for (var issueEntry in (issueMap as Map).entries) {
+          for (var issueEntry in (issueMap).entries) {
             final issue = issueEntry.key.toString();
             final userMap = issueEntry.value;
 
             if (userMap is! Map) continue;
 
-            for (var userEntry in (userMap as Map).entries) {
+            for (var userEntry in (userMap).entries) {
               final userId = userEntry.key.toString();
               final data = userEntry.value;
 
@@ -197,7 +198,7 @@ class _ReportCardState extends State<ReportCard> {
   Future<void> _fetchMissingPlaceDetails(List<String> placeIds) async {
     for (final placeId in placeIds) {
       if (_placeDetailsMap.containsKey(placeId)) continue;
-      
+
       Map<String, String>? placeDetails = await fetchPlaceDetails(placeId);
       if (placeDetails != null && mounted) {
         setState(() {
@@ -266,13 +267,12 @@ class _ReportCardState extends State<ReportCard> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColorDark,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 15)),
+                        backgroundColor: Theme.of(context).primaryColorDark,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 15)),
                     child: Text("Delete",
                         style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17)),
+                            fontWeight: FontWeight.bold, fontSize: 17)),
                   ),
                   const SizedBox(width: 14),
                   TextButton(
@@ -306,7 +306,7 @@ class _ReportCardState extends State<ReportCard> {
 
     return Column(
       children: reportsByUser.values.expand((reports) => reports).map((report) {
-        final placeId = report['reportId']; 
+        final placeId = report['reportId'];
         final placeDetails = _placeDetailsMap[placeId];
         return Container(
           width: double.infinity,
