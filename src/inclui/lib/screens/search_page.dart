@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:inclui/constants.dart';
 import 'package:inclui/screens/place_detail_page.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'dart:math';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -18,11 +21,9 @@ class SearchPageState extends State<SearchPage> {
 
   Timer? _debounce;
 
-  List<Map<String, dynamic>> _reports = [];
   List<Map<String, String>> _placePredictions = [];
-  String _searchQuery = '';
 
-  double _maxDistance = 1000.0;
+  double _maxDistance = 200.0;
   String? _selectedIssueType;
 
   @override
@@ -75,27 +76,91 @@ class SearchPageState extends State<SearchPage> {
 
   void _clearFilters() {
     setState(() {
-      _maxDistance = 1000.0;
+      _maxDistance = 200.0;
       _selectedIssueType = null;
-      _searchQuery = '';
       _searchController.clear();
     });
   }
 
-  List<Map<String, dynamic>> getFilteredReports() {
-    return _reports.where((report) {
-      final nameMatches =
-          report['name'].toLowerCase().contains(_searchQuery.toLowerCase());
+  Future<Map<String, List<String>>> fetchReportsByPlaceId() async {
+  final dbRef = FirebaseDatabase.instance.ref().child('reports');
+  final snapshot = await dbRef.get();
 
-      final distanceMatches = report['distance'] <= _maxDistance;
+  Map<String, List<String>> reportsByPlaceId = {};
 
-      final issueMatches = _selectedIssueType == null ||
-          _selectedIssueType!.isEmpty ||
-          report['issue'].toString().toLowerCase() ==
-              _selectedIssueType!.toLowerCase();
+  if (snapshot.exists) {
+    final data = snapshot.value as Map<dynamic, dynamic>;
+    data.forEach((placeId, reports) {
+      final issues = <String>[];
+      if (reports is Map) {
+        reports.forEach((reportId, reportData) {
+          if (reportData is Map && reportData['issue'] != null) {
+            issues.add(reportData['issue'].toString());
+          }
+        });
+      }
+      reportsByPlaceId[placeId.toString()] = issues;
+    });
+  }
+  return reportsByPlaceId;
+}
 
-      return nameMatches && distanceMatches && issueMatches;
-    }).toList();
+  Future<Map<String, double>?> getLatLngFromPlaceId(String placeId) async {
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    final url =
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&key=$apiKey';
+    final response = await http.get(Uri.parse(url));
+    final data = jsonDecode(response.body);
+    if (data['status'] == 'OK') {
+      final location = data['result']['geometry']['location'];
+      return {'lat': location['lat'], 'lng': location['lng']};
+    }
+    return null;
+  }
+
+  double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371;
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLon = (lon2 - lon1) * pi / 180;
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  Future<List<Map<String, String>>> getFilteredPredictions(
+      double userLat,
+      double userLng,
+      Map<String, List<String>> reportsByPlaceId,
+    ) async {
+    List<Map<String, String>> filtered = [];
+    for (final prediction in _placePredictions) {
+      final placeId = prediction['placeId']!;
+      final coords = await getLatLngFromPlaceId(placeId);
+      if (coords == null) continue;
+
+      final distance = calculateDistanceKm(
+        userLat,
+        userLng,
+        coords['lat']!,
+        coords['lng']!,
+      );
+
+      if (distance > _maxDistance) continue;
+
+      final issues = reportsByPlaceId[placeId] ?? [];
+      final hasIssue = _selectedIssueType != null &&
+          _selectedIssueType!.isNotEmpty &&
+          issues.contains(_selectedIssueType);
+
+      if (!hasIssue) {
+        filtered.add(prediction);
+      }
+    }
+    return filtered;
   }
 
   @override
@@ -203,8 +268,8 @@ class SearchPageState extends State<SearchPage> {
                                         inactiveColor: Colors.grey[300],
                                         value: _maxDistance,
                                         min: 0,
-                                        max: 1000,
-                                        divisions: 20,
+                                        max: 200,
+                                        divisions: 10,
                                         label:
                                             '${_maxDistance.toStringAsFixed(0)} km',
                                         onChanged: (value) {
@@ -292,50 +357,68 @@ class SearchPageState extends State<SearchPage> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _placePredictions.length,
-                  itemBuilder: (context, index) {
-                    final prediction = _placePredictions[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side:
-                            BorderSide(color: Colors.grey.shade300, width: 1.0),
-                      ),
-                      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                      color: Colors.white,
-                      shadowColor: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Column(
-                          children: [
-                            ListTile(
-                              onTap: () {
-                                final placeId = prediction['placeId'];
-                                final placeName = prediction['name'];
-                                final placeAddr = prediction['address'];
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PlaceDetailPage(
-                                      placeId: placeId!,
-                                      placeName: placeName!,
-                                      placeAddr: placeAddr!,
+                child: FutureBuilder<Position>(
+                  future: Geolocator.getCurrentPosition(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+                    final userLat = snapshot.data!.latitude;
+                    final userLng = snapshot.data!.longitude;
+
+                    return FutureBuilder<Map<String, List<String>>>(
+                      future: fetchReportsByPlaceId(),
+                      builder: (context, reportsSnapshot) {
+                        if (!reportsSnapshot.hasData) return Center(child: CircularProgressIndicator());
+                        final reportsByPlaceId = reportsSnapshot.data!;
+
+                        return FutureBuilder<List<Map<String, String>>>(
+                          future: getFilteredPredictions(userLat, userLng, reportsByPlaceId),
+                          builder: (context, filteredSnapshot) {
+                            if (!filteredSnapshot.hasData) return Center(child: CircularProgressIndicator());
+                            final filteredPredictions = filteredSnapshot.data!;
+                            if (filteredPredictions.isEmpty) {
+                              return Center(child: Text('No places found with current filters.'));
+                            }
+                            return ListView.builder(
+                              itemCount: filteredPredictions.length,
+                              itemBuilder: (context, index) {
+                                final prediction = filteredPredictions[index];
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                                  ),
+                                  margin: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+                                  color: Colors.white,
+                                  shadowColor: Colors.transparent,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: ListTile(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PlaceDetailPage(
+                                              placeId: prediction['placeId']!,
+                                              placeName: prediction['name']!,
+                                              placeAddr: prediction['address']!,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      leading: Icon(Icons.place, color: Theme.of(context).primaryColor),
+                                      title: Text(
+                                        prediction['name'] ?? '',
+                                        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Text(prediction['address'] ?? ''),
                                     ),
                                   ),
                                 );
                               },
-                              leading: Icon(Icons.place,
-                                  color: Theme.of(context).primaryColor),
-                              title: Text(prediction['name'] ?? '',
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                              subtitle: Text(prediction['address'] ?? ''),
-                            ),
-                          ],
-                        ),
-                      ),
+                            );
+                          },
+                        );
+                      },
                     );
                   },
                 ),
