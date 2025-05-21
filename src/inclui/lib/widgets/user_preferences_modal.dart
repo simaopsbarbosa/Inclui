@@ -119,7 +119,7 @@ class _AccessibilityPreferencesModalState
   }
 
   Future<void> _loadUserPreferences() async {
-    final prefs = await AuthService().getUserPreferences();
+    final prefs = await AuthService.getUserPreferences();
     setState(() {
       selectedPreferences.addAll(prefs);
       isLoading = false;
@@ -240,8 +240,8 @@ class _AccessibilityPreferencesModalState
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        await AuthService()
-                            .saveUserPreferences(selectedPreferences.toList());
+                        await AuthService.saveUserPreferences(
+                            selectedPreferences.toList());
                         Navigator.pop(context, selectedPreferences.toList());
                       },
                       style: ElevatedButton.styleFrom(
