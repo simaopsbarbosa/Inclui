@@ -256,7 +256,7 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildUserReports() {
-    if (_user == null) return const SizedBox(); 
+    if (_user == null) return const SizedBox();
     return ReportCard(
       userId: _user!.uid,
       key: ValueKey(_user!.uid),
@@ -267,18 +267,19 @@ class ProfilePageState extends State<ProfilePage> {
           });
         }
       },
-    ); 
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        color: Colors.grey.shade100,
+    return Scaffold(
+      backgroundColor: Colors.grey.shade100,
+      body: SingleChildScrollView(
         child: _isLoading
             ? Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
                       backgroundColor: Colors.transparent,
@@ -319,24 +320,29 @@ class ProfilePageState extends State<ProfilePage> {
                       ],
                     ),
                   )
-                : (_user != null
+                : _user != null
                     ? Column(
                         children: [
                           _buildUserProfile(),
                           if (!_user!.emailVerified) _verifyAccount(),
                           UserPreferencesModal(
                             onPreferencesUpdated: () {
-                              setState(() {});
+                            setState(() {});
                             },
                           ),
+                          if (_reportsCount > 0) ...[
                           Text("${_userName ?? 'User'}'s Reports",
-                              style: GoogleFonts.inter(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                            style: GoogleFonts.inter(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 16),
                           _buildUserReports(),
+                          const SizedBox(height: 24),
+                          ],
                         ],
                       )
-                    : _buildLoggedOutView()),
+                    : Center(
+                        child: _buildLoggedOutView(),
+                      ),
       ),
     );
   }
