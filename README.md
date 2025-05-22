@@ -276,4 +276,9 @@ End of Sprint 2:
 Start of Sprint 3:
 ![image](https://github.com/user-attachments/assets/f31d8a64-8573-435b-b427-b453b95f9b83)
 
+End of Sprint 3:
+![image](https://github.com/user-attachments/assets/a58be854-a441-410a-b68d-17ec689d8cd7)
+
+**Retrospective**: In Sprint 3, the development was smooth and stress-free.
+
 ### Final Release
