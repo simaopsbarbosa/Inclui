@@ -73,6 +73,12 @@ class SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
+  void setPlacePredictions(List<Map<String, String>> predictions) {
+  setState(() {
+    _placePredictions = predictions;
+  });
+}
+
   void _clearFilters() {
     setState(() {
       _maxDistance = 1000.0;

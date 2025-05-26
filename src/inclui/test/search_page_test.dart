@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:inclui/screens/search_page.dart';
 
 void main() {
   group('SearchPage Filters', () {
@@ -55,5 +57,43 @@ void main() {
       expect(filteredReports.length, 1);
       expect(filteredReports[0]['name'], 'Place B');
     });
+  });
+
+  testWidgets('SearchPage shows search TextField', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Search by place name...'), findsOneWidget);
+  });
+
+  testWidgets('SearchPage shows place predictions when available', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'Lisboa');
+    await tester.pump(); 
+
+    final state = tester.state(find.byType(SearchPage)) as SearchPageState;
+    state.setPlacePredictions([
+      {'name': 'Lisboa Pessoa Hotel', 'address': 'Lisboa, Portugal', 'placeId': '1'},
+      {'name': 'Lisboa Rio Club', 'address': 'Lisboa, Portugal', 'placeId': '2'},
+      {'name': 'Lisboa Tu e Eu 2', 'address': 'Lisboa, Portugal', 'placeId': '3'},
+    ]);
+    await tester.pump();
+
+    expect(find.text('Lisboa Pessoa Hotel'), findsOneWidget); 
+    expect(find.text('Lisboa Rio Club'), findsOneWidget);
+    expect(find.text('Lisboa Tu e Eu 2'), findsOneWidget);
   });
 }
