@@ -69,7 +69,7 @@ class ProfilePageState extends State<ProfilePage> {
             _createdAt = null;
             _isLoading = true;
             _dataFetchError = false;
-            
+
             _reportsByUser = {};
             _placeDetailsMap = {};
             _isLoadingReports = true;
@@ -790,27 +790,51 @@ class ProfilePageState extends State<ProfilePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.person,
+              size: 80,
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+            ),
+            SizedBox(height: 16),
             Text(
-              'You are not logged in. \nLog in to access exclusive features.',
-              textAlign: TextAlign.center,
+              'You are not logged in',
               style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50),
+              child: Text(
+                'Log in to submit reports and customize your accessibility preferences.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ),
+            SizedBox(height: 42),
             ElevatedButton(
               onPressed: _redirectToLogin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: Text(
-                'Login',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: Text(
+                  'Login',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
