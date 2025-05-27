@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclui/constants.dart';
 import 'package:inclui/screens/place_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -18,12 +17,7 @@ class SearchPageState extends State<SearchPage> {
 
   Timer? _debounce;
 
-  List<Map<String, dynamic>> _reports = [];
   List<Map<String, String>> _placePredictions = [];
-  String _searchQuery = '';
-
-  double _maxDistance = 1000.0;
-  String? _selectedIssueType;
 
   @override
   void initState() {
@@ -79,29 +73,78 @@ class SearchPageState extends State<SearchPage> {
   });
 }
 
-  void _clearFilters() {
-    setState(() {
-      _maxDistance = 1000.0;
-      _selectedIssueType = null;
-      _searchQuery = '';
-      _searchController.clear();
-    });
+  Widget _buildEmptySearchState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search,
+            size: 80,
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Search for a place',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Type in the search bar to find accessible places',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ),
+          SizedBox(height: 50),
+        ],
+      ),
+    );
   }
 
-  List<Map<String, dynamic>> getFilteredReports() {
-    return _reports.where((report) {
-      final nameMatches =
-          report['name'].toLowerCase().contains(_searchQuery.toLowerCase());
-
-      final distanceMatches = report['distance'] <= _maxDistance;
-
-      final issueMatches = _selectedIssueType == null ||
-          _selectedIssueType!.isEmpty ||
-          report['issue'].toString().toLowerCase() ==
-              _selectedIssueType!.toLowerCase();
-
-      return nameMatches && distanceMatches && issueMatches;
-    }).toList();
+  Widget _buildNoResultsFound() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 80,
+            color: Colors.grey[300],
+          ),
+          SizedBox(height: 16),
+          Text(
+            'No results found',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Try searching with different keywords or check the spelling',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ),
+          SizedBox(height: 50),
+        ],
+      ),
+    );
   }
 
   @override
@@ -162,189 +205,67 @@ class SearchPageState extends State<SearchPage> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list, color: Colors.white),
-                      onPressed: () {
-                        FocusScope.of(context).unfocus();
-                        showModalBottomSheet(
-                          context: context,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                          ),
-                          backgroundColor: Colors.white,
-                          builder: (context) {
-                            return StatefulBuilder(
-                              builder: (BuildContext context,
-                                  StateSetter modalSetState) {
-                                return Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Filters',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        'Max Distance (km)',
-                                        style: GoogleFonts.inter(fontSize: 14),
-                                      ),
-                                      Slider(
-                                        thumbColor:
-                                            Theme.of(context).primaryColor,
-                                        activeColor:
-                                            Theme.of(context).primaryColor,
-                                        inactiveColor: Colors.grey[300],
-                                        value: _maxDistance,
-                                        min: 0,
-                                        max: 1000,
-                                        divisions: 20,
-                                        label:
-                                            '${_maxDistance.toStringAsFixed(0)} km',
-                                        onChanged: (value) {
-                                          modalSetState(() {
-                                            _maxDistance = value;
-                                          });
-                                          setState(() {});
-                                        },
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        'Issue Type',
-                                        style: GoogleFonts.inter(fontSize: 14),
-                                      ),
-                                      SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.8,
-                                        child: DropdownButton<String>(
-                                          value: _selectedIssueType,
-                                          isExpanded: true,
-                                          hint: Text('Select'),
-                                          items: accessibilityIssues.keys
-                                              .map((String type) {
-                                            return DropdownMenuItem<String>(
-                                              value: type,
-                                              child: Text(type),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            modalSetState(() {
-                                              _selectedIssueType = value;
-                                            });
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Theme.of(context)
-                                                  .primaryColor,
-                                              textStyle: GoogleFonts.inter(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text("Apply"),
-                                          ),
-                                          TextButton.icon(
-                                            onPressed: () {
-                                              _clearFilters();
-                                              Navigator.pop(context);
-                                            },
-                                            icon: Icon(Icons.delete_forever,
-                                                color: Colors.red),
-                                            label: Text(
-                                              'Clear Filters',
-                                              style:
-                                                  TextStyle(color: Colors.red),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 40),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ),
               SizedBox(height: 20),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _placePredictions.length,
-                  itemBuilder: (context, index) {
-                    final prediction = _placePredictions[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side:
-                            BorderSide(color: Colors.grey.shade300, width: 1.0),
-                      ),
-                      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                      color: Colors.white,
-                      shadowColor: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Column(
-                          children: [
-                            ListTile(
-                              onTap: () {
-                                final placeId = prediction['placeId'];
-                                final placeName = prediction['name'];
-                                final placeAddr = prediction['address'];
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PlaceDetailPage(
-                                      placeId: placeId!,
-                                      placeName: placeName!,
-                                      placeAddr: placeAddr!,
-                                    ),
+                child: _searchController.text.isEmpty
+                    ? _buildEmptySearchState()
+                    : _placePredictions.isEmpty &&
+                            _searchController.text.isNotEmpty
+                        ? _buildNoResultsFound()
+                        : ListView.builder(
+                            itemCount: _placePredictions.length,
+                            itemBuilder: (context, index) {
+                              final prediction = _placePredictions[index];
+                              return Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                      color: Colors.grey.shade300, width: 1.0),
+                                ),
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 6),
+                                color: Colors.white,
+                                shadowColor: Colors.transparent,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        onTap: () {
+                                          final placeId = prediction['placeId'];
+                                          final placeName = prediction['name'];
+                                          final placeAddr =
+                                              prediction['address'];
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  PlaceDetailPage(
+                                                placeId: placeId!,
+                                                placeName: placeName!,
+                                                placeAddr: placeAddr!,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        leading: Icon(Icons.place,
+                                            color:
+                                                Theme.of(context).primaryColor),
+                                        title: Text(prediction['name'] ?? '',
+                                            style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.bold,
+                                            )),
+                                        subtitle:
+                                            Text(prediction['address'] ?? ''),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                              leading: Icon(Icons.place,
-                                  color: Theme.of(context).primaryColor),
-                              title: Text(prediction['name'] ?? '',
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                              subtitle: Text(prediction['address'] ?? ''),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                                ),
+                              );
+                            },
+                          ),
               ),
             ],
           ),

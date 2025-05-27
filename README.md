@@ -74,25 +74,18 @@ To learn more about how to write a good product vision, please see:
 
 ### Features and Assumptions
 
-<!--
-Indicate an  initial/tentative list of high-level features - high-level capabilities or desired services of the system that are necessary to deliver benefits to the users.
- - Feature XPTO - a few words to briefly describe the feature
- - Feature ABCD - ...
-...
-
-Optionally, indicate an initial/tentative list of assumptions that you are doing about the app and dependencies of the app to other systems.
--->
+- **Accessibility-Focused Search** - Allow users to search for places based on specific accessibility features
+- **Place Reporting System** - Enable validated users to report accessibility issues at establishments
+- **Interactive Map View** - Visualize nearby places with their accessibility issues
+- **User Authentication** - Secure account creation, login, and profile verification system
+- **Detailed Place Profiles** - View comprehensive information about establishments' accessibility features
+- **Personalized Accessibility Filters** - Filter map icons based on individual accessibility needs
+- **User Review Management** - Enable users to track and delete their submitted reports
+- **Multiple Accessibility Categories** - Support for various accessibility features including wheelchair access, Braille menus, elevators, and pregnancy accommodations
 
 ### Elevator Pitch
 
-<!--
-Draft a small text to help you quickly introduce and describe your product in a short time (lift travel time ~90 seconds) and a few words (~800 characters), a technique usually known as elevator pitch.
-
-Take a look at the following links to learn some techniques:
-* [Crafting an Elevator Pitch](https://www.mindtools.com/pages/article/elevator-pitch.htm)
-* [The Best Elevator Pitch Examples, Templates, and Tactics - A Guide to Writing an Unforgettable Elevator Speech, by strategypeak.com](https://strategypeak.com/elevator-pitch-examples/)
-* [Top 7 Killer Elevator Pitch Examples, by toggl.com](https://blog.toggl.com/elevator-pitch-examples/)
--->
+Imagine arriving at a restaurant only to discover you can't enter because there's no wheelchair ramp, or needing a Braille menu that isn't available. For millions with mobility or sensory challenges, this uncertainty is a daily reality. Inclui is a community-powered mobile app that transforms how people discover accessible spaces. Users can find and report places with specific accommodations like wheelchair access, Braille menus, or elevators—turning unpredictable outings into reliable experiences. While traditional solutions involve asking friends or taking chances, Inclui provides verified, crowd-sourced accessibility information exactly when needed. By connecting those with accessibility needs to welcoming establishments, we're not just helping people find accessible places—we're building a more inclusive world where everyone belongs.
 
 ## Requirements
 
