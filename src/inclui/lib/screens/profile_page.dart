@@ -38,6 +38,10 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+
+    _reportsByUser = {};
+    _placeDetailsMap = {};
+
     _user = _auth.currentUser;
     _setupAuthListener();
 
@@ -65,9 +69,17 @@ class ProfilePageState extends State<ProfilePage> {
             _createdAt = null;
             _isLoading = true;
             _dataFetchError = false;
+            
+            _reportsByUser = {};
+            _placeDetailsMap = {};
+            _isLoadingReports = true;
+            _reportsDataFetchError = false;
           });
         }
         await _fetchUserData(user.uid);
+        if (mounted && _user != null) {
+          await _fetchUserReports(user.uid);
+        }
       } else if (user == null) {
         if (mounted) {
           setState(() {
@@ -75,6 +87,9 @@ class ProfilePageState extends State<ProfilePage> {
             _userName = null;
             _createdAt = null;
             _isLoading = false;
+            _reportsByUser = {};
+            _placeDetailsMap = {};
+            _isLoadingReports = false;
           });
         }
       }
@@ -163,6 +178,8 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _fetchUserReports(String uid) async {
+    final String currentUid = uid;
+
     if (mounted) {
       setState(() {
         _isLoadingReports = true;
@@ -176,105 +193,127 @@ class ProfilePageState extends State<ProfilePage> {
           .get()
           .timeout(const Duration(seconds: 5));
 
-      if (snapshot.exists) {
-        final allReports = snapshot.value;
-        if (allReports is! Map) {
-          if (mounted) {
-            setState(() {
-              _isLoadingReports = false;
-              _reportsDataFetchError = false;
-              _reportsByUser = {};
-            });
-          }
-          return;
-        }
+      if (_user == null || _user!.uid != currentUid) {
+        debugPrint('User changed during fetch, ignoring results');
+        return;
+      }
 
-        Map<String, List<Map<String, dynamic>>> groupedReports = {};
+      if (!mounted) return;
 
-        for (var reportEntry in (allReports).entries) {
-          final reportId = reportEntry.key.toString();
-          final issueMap = reportEntry.value;
+      if (!snapshot.exists) {
+        setState(() {
+          _isLoadingReports = false;
+          _reportsDataFetchError = false;
+          _reportsByUser = {};
+        });
+        return;
+      }
 
-          if (issueMap is! Map) continue;
+      final allReports = snapshot.value;
+      if (allReports is! Map) {
+        setState(() {
+          _isLoadingReports = false;
+          _reportsDataFetchError = false;
+          _reportsByUser = {};
+        });
+        return;
+      }
 
-          for (var issueEntry in (issueMap).entries) {
-            final issue = issueEntry.key.toString();
-            final userMap = issueEntry.value;
+      Map<String, List<Map<String, dynamic>>> groupedReports = {};
+      Map<String, Map<String, String>> newPlaceDetailsMap = {};
 
-            if (userMap is! Map) continue;
+      newPlaceDetailsMap.addAll(_placeDetailsMap);
 
-            for (var userEntry in (userMap).entries) {
-              final userId = userEntry.key.toString();
-              final data = userEntry.value;
+      for (var reportEntry in (allReports).entries) {
+        final reportId = reportEntry.key.toString();
+        final issueMap = reportEntry.value;
 
-              if (userId == uid && data is Map) {
-                try {
-                  final email = data['email']?.toString() ?? 'unknown';
-                  final timestamp = data['timestamp']?.toString();
+        if (issueMap is! Map) continue;
 
-                  groupedReports.putIfAbsent(email, () => []).add({
-                    'issue': issue,
-                    'userId': userId,
-                    'reportId': reportId,
-                    'timestamp': timestamp,
-                    'email': email,
-                  });
+        for (var issueEntry in (issueMap).entries) {
+          final issue = issueEntry.key.toString();
+          final userMap = issueEntry.value;
 
-                  if (!_placeDetailsMap.containsKey(reportId)) {
-                    Map<String, String>? placeDetails =
-                        await _fetchPlaceDetails(reportId);
-                    if (placeDetails != null && mounted) {
-                      setState(() {
-                        _placeDetailsMap[reportId] = placeDetails;
-                      });
-                    }
+          if (userMap is! Map) continue;
+
+          for (var userEntry in (userMap).entries) {
+            final userId = userEntry.key.toString();
+            final data = userEntry.value;
+
+            if (_user == null || _user!.uid != currentUid) {
+              debugPrint(
+                  'User changed during report processing, ignoring results');
+              return;
+            }
+
+            if (userId == currentUid && data is Map) {
+              try {
+                final email = data['email']?.toString() ?? 'unknown';
+                final timestamp = data['timestamp']?.toString();
+
+                groupedReports.putIfAbsent(email, () => []).add({
+                  'issue': issue,
+                  'userId': userId,
+                  'reportId': reportId,
+                  'timestamp': timestamp,
+                  'email': email,
+                });
+
+                if (!newPlaceDetailsMap.containsKey(reportId)) {
+                  Map<String, String>? placeDetails =
+                      await _fetchPlaceDetails(reportId);
+
+                  if (_user == null || _user!.uid != currentUid) {
+                    debugPrint(
+                        'User changed during place details fetch, ignoring results');
+                    return;
                   }
-                } catch (e) {
-                  debugPrint('Error processing report data: $e');
+
+                  if (placeDetails != null && mounted) {
+                    newPlaceDetailsMap[reportId] = placeDetails;
+                  }
                 }
+              } catch (e) {
+                debugPrint('Error processing report data: $e');
               }
             }
           }
         }
+      }
 
-        if (mounted) {
-          setState(() {
-            _reportsByUser = groupedReports;
-            _isLoadingReports = false;
-            _reportsDataFetchError = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _isLoadingReports = false;
-            _reportsDataFetchError = false;
-            _reportsByUser = {};
-          });
-        }
-      }
+      if (!mounted || _user == null || _user!.uid != currentUid) return;
+
+      setState(() {
+        _reportsByUser = groupedReports;
+        _placeDetailsMap = newPlaceDetailsMap;
+        _isLoadingReports = false;
+        _reportsDataFetchError = false;
+      });
     } on TimeoutException {
-      if (mounted) {
-        setState(() {
-          _isLoadingReports = false;
-          _reportsDataFetchError = true;
-        });
-      }
+      if (!mounted || _user == null || _user!.uid != currentUid) return;
+
+      setState(() {
+        _isLoadingReports = false;
+        _reportsDataFetchError = true;
+      });
+
       await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        _fetchUserReports(uid);
+      if (mounted && _user != null && _user!.uid == currentUid) {
+        _fetchUserReports(currentUid);
       }
     } catch (e) {
       debugPrint('Error fetching reports: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingReports = false;
-          _reportsDataFetchError = true;
-        });
-      }
+
+      if (!mounted || _user == null || _user!.uid != currentUid) return;
+
+      setState(() {
+        _isLoadingReports = false;
+        _reportsDataFetchError = true;
+      });
+
       await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        _fetchUserReports(uid);
+      if (mounted && _user != null && _user!.uid == currentUid) {
+        _fetchUserReports(currentUid);
       }
     }
   }
@@ -283,6 +322,10 @@ class ProfilePageState extends State<ProfilePage> {
   void dispose() {
     _authSubscription?.cancel();
     _reportSubscription?.cancel();
+
+    _reportsByUser.clear();
+    _placeDetailsMap.clear();
+
     super.dispose();
   }
 
