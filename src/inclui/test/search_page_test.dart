@@ -107,6 +107,9 @@ void main() {
     );
     expect(find.byType(Card), findsNothing);
 
+    await tester.enterText(find.byType(TextField), 'Test');
+    await tester.pump();
+
     final state = tester.state(find.byType(SearchPage)) as SearchPageState;
     state.setPlacePredictions([
       {'name': 'Test Place', 'address': 'Test Address', 'placeId': '1'},
@@ -170,5 +173,33 @@ void main() {
     final textField = tester.widget<TextField>(find.byType(TextField));
     
     expect(textField.controller?.text ?? '', '');
+  });
+
+  testWidgets('SearchPage shows empty search state when field is empty', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    
+    expect(find.text('Search for a place'), findsOneWidget);
+    expect(find.byIcon(Icons.search), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('SearchPage shows no results found when field has text but no predictions', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'abcdefghijklmonp');
+    await tester.pump();
+
+    expect(find.text('No results found'), findsOneWidget);
+    expect(find.byIcon(Icons.search_off), findsOneWidget);
   });
 }
