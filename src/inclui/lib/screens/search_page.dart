@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:inclui/constants.dart';
 import 'package:inclui/screens/place_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -71,15 +70,6 @@ class SearchPageState extends State<SearchPage> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _maxDistance = 1000.0;
-      _selectedIssueType = null;
-      _searchQuery = '';
-      _searchController.clear();
-    });
   }
 
   List<Map<String, dynamic>> getFilteredReports() {
@@ -228,138 +218,6 @@ class SearchPageState extends State<SearchPage> {
                           _onSearchChanged();
                         },
                       ),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list, color: Colors.white),
-                      onPressed: () {
-                        FocusScope.of(context).unfocus();
-                        showModalBottomSheet(
-                          context: context,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                          ),
-                          backgroundColor: Colors.white,
-                          builder: (context) {
-                            return StatefulBuilder(
-                              builder: (BuildContext context,
-                                  StateSetter modalSetState) {
-                                return Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Filters',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        'Max Distance (km)',
-                                        style: GoogleFonts.inter(fontSize: 14),
-                                      ),
-                                      Slider(
-                                        thumbColor:
-                                            Theme.of(context).primaryColor,
-                                        activeColor:
-                                            Theme.of(context).primaryColor,
-                                        inactiveColor: Colors.grey[300],
-                                        value: _maxDistance,
-                                        min: 0,
-                                        max: 1000,
-                                        divisions: 20,
-                                        label:
-                                            '${_maxDistance.toStringAsFixed(0)} km',
-                                        onChanged: (value) {
-                                          modalSetState(() {
-                                            _maxDistance = value;
-                                          });
-                                          setState(() {});
-                                        },
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        'Issue Type',
-                                        style: GoogleFonts.inter(fontSize: 14),
-                                      ),
-                                      SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.8,
-                                        child: DropdownButton<String>(
-                                          value: _selectedIssueType,
-                                          isExpanded: true,
-                                          hint: Text('Select'),
-                                          items: accessibilityIssues.keys
-                                              .map((String type) {
-                                            return DropdownMenuItem<String>(
-                                              value: type,
-                                              child: Text(type),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            modalSetState(() {
-                                              _selectedIssueType = value;
-                                            });
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Theme.of(context)
-                                                  .primaryColor,
-                                              textStyle: GoogleFonts.inter(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text("Apply"),
-                                          ),
-                                          TextButton.icon(
-                                            onPressed: () {
-                                              _clearFilters();
-                                              Navigator.pop(context);
-                                            },
-                                            icon: Icon(Icons.delete_forever,
-                                                color: Colors.red),
-                                            label: Text(
-                                              'Clear Filters',
-                                              style:
-                                                  TextStyle(color: Colors.red),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 40),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
                     ),
                   ),
                 ],
