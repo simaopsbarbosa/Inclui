@@ -17,12 +17,7 @@ class SearchPageState extends State<SearchPage> {
 
   Timer? _debounce;
 
-  List<Map<String, dynamic>> _reports = [];
   List<Map<String, String>> _placePredictions = [];
-  String _searchQuery = '';
-
-  double _maxDistance = 1000.0;
-  String? _selectedIssueType;
 
   @override
   void initState() {
@@ -70,22 +65,6 @@ class SearchPageState extends State<SearchPage> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  List<Map<String, dynamic>> getFilteredReports() {
-    return _reports.where((report) {
-      final nameMatches =
-          report['name'].toLowerCase().contains(_searchQuery.toLowerCase());
-
-      final distanceMatches = report['distance'] <= _maxDistance;
-
-      final issueMatches = _selectedIssueType == null ||
-          _selectedIssueType!.isEmpty ||
-          report['issue'].toString().toLowerCase() ==
-              _selectedIssueType!.toLowerCase();
-
-      return nameMatches && distanceMatches && issueMatches;
-    }).toList();
   }
 
   Widget _buildEmptySearchState() {
