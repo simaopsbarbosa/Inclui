@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inclui/screens/search_page.dart';
-import 'package:inclui/screens/place_detail_page.dart';
 
 void main() {
   group('SearchPage Filters', () {
