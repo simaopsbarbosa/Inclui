@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inclui/screens/search_page.dart';
+import 'package:inclui/screens/place_detail_page.dart';
 
 void main() {
   group('SearchPage Filters', () {
@@ -95,5 +96,80 @@ void main() {
     expect(find.text('Lisboa Pessoa Hotel'), findsOneWidget); 
     expect(find.text('Lisboa Rio Club'), findsOneWidget);
     expect(find.text('Lisboa Tu e Eu 2'), findsOneWidget);
+  });
+
+  testWidgets('SearchPage shows place prediction card only when predictions exist', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    expect(find.byType(Card), findsNothing);
+
+    final state = tester.state(find.byType(SearchPage)) as SearchPageState;
+    state.setPlacePredictions([
+      {'name': 'Test Place', 'address': 'Test Address', 'placeId': '1'},
+    ]);
+    await tester.pump();
+
+    expect(find.byType(Card), findsOneWidget);
+  });
+
+  testWidgets('SearchPage search field updates with user input', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'Porto');
+    await tester.pump();
+    final textField = tester.widget<TextField>(find.byType(TextField));
+    
+    expect(textField.controller?.text ?? '', 'Porto');
+  });
+
+  testWidgets('SearchPage shows close icon only when search field has text', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.close), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'Lisboa');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsNothing);
+  });
+
+  testWidgets('SearchPage clears search field when close icon is tapped', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'Lisboa');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+    final textField = tester.widget<TextField>(find.byType(TextField));
+    
+    expect(textField.controller?.text ?? '', '');
   });
 }
