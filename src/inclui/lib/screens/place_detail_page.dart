@@ -28,12 +28,22 @@ class PlaceDetailPage extends StatefulWidget {
 class _PlaceDetailPageState extends State<PlaceDetailPage> {
   late Future<String?> _photoFuture;
   late Future<DataSnapshot> _reportsFuture;
+  Future<List<String>> _userPreferencesFuture = Future.value([]);
 
   @override
   void initState() {
     super.initState();
     _photoFuture = fetchPlacePhotoUrl();
     _reportsFuture = _loadReports();
+    _loadUserPreferences();
+  }
+
+  void _loadUserPreferences() {
+    _userPreferencesFuture =
+        AuthService.getUserPreferences().catchError((error) {
+      print('Error loading user preferences: $error');
+      return <String>[];
+    });
   }
 
   Future<String?> fetchPlacePhotoUrl() async {
@@ -148,10 +158,10 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                     ),
                   ),
                 ),
-                FutureBuilder<DataSnapshot>(
-                  future: _reportsFuture,
-                  builder: (context, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
+                FutureBuilder<List<dynamic>>(
+                  future: Future.wait([_reportsFuture, _userPreferencesFuture]),
+                  builder: (context, snapshots) {
+                    if (snapshots.connectionState == ConnectionState.waiting) {
                       return const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: LinearProgressIndicator(
@@ -160,7 +170,13 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                         ),
                       );
                     }
-                    if (!snap.hasData || snap.data!.value == null) {
+
+                    final reportsSnapshot = snapshots.data?[0] as DataSnapshot?;
+                    final userPreferences =
+                        snapshots.data?[1] as List<String>? ?? [];
+
+                    if (reportsSnapshot == null ||
+                        reportsSnapshot.value == null) {
                       return Padding(
                         padding: const EdgeInsets.all(24.0),
                         child: Text(
@@ -172,7 +188,8 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                         ),
                       );
                     }
-                    final data = snap.data!.value as Map<dynamic, dynamic>;
+
+                    final data = reportsSnapshot.value as Map<dynamic, dynamic>;
                     final issueCounts = <String, int>{};
                     for (final entry in data.entries) {
                       final issue = entry.key as String;
@@ -181,6 +198,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                     }
                     final totalReports =
                         issueCounts.values.fold(0, (a, b) => a + b);
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Column(
@@ -196,7 +214,10 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                               ),
                             ),
                           ),
-                          Issues(issueCounts: issueCounts),
+                          Issues(
+                            issueCounts: issueCounts,
+                            userPreferences: userPreferences,
+                          ),
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -264,9 +285,11 @@ class Issues extends StatelessWidget {
   const Issues({
     super.key,
     required this.issueCounts,
+    required this.userPreferences,
   });
 
   final Map<String, int> issueCounts;
+  final List<String> userPreferences;
 
   @override
   Widget build(BuildContext context) {
@@ -299,43 +322,60 @@ class Issues extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ...(issueCounts.entries.toList()
-                ..sort((a, b) => b.value.compareTo(a.value)))
+                ..sort((a, b) {
+                  final aInPrefs = userPreferences.contains(a.key);
+                  final bInPrefs = userPreferences.contains(b.key);
+
+                  if (aInPrefs && !bInPrefs) return -1;
+                  if (!aInPrefs && bInPrefs) return 1;
+
+                  return b.value.compareTo(a.value);
+                }))
               .map(
-            (entry) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    accessibilityIssues[entry.key] ??
-                        FontAwesomeIcons.solidCircleQuestion,
-                    color: Color(0xFFD72B5E),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 12),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '(${entry.value})',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' ${entry.key}',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
+            (entry) {
+              final isPreferred = userPreferences.contains(entry.key);
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      accessibilityIssues[entry.key] ??
+                          FontAwesomeIcons.solidCircleQuestion,
+                      color: isPreferred
+                          ? Color(0xFFD72B5E)
+                          : Colors.black.withAlpha(100),
+                      size: 18,
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(width: 12),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '(${entry.value})',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' ${entry.key}',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: isPreferred
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),

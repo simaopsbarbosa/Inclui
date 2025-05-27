@@ -740,45 +740,49 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildLoggedOutView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'You are not logged in. \nLog in to access exclusive features.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _redirectToLogin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(
-              'Login',
+    return Container(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * 0.7,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'You are not logged in. \nLog in to access exclusive features.',
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
               ),
             ),
-          ),
-        ],
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _redirectToLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'Login',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 String maskEmail(String email) {
-    final parts = email.split('@');
-    final visible = parts[0].substring(0, 2);
-    final masked = '*' * (parts[0].length - 2);
-    return '$visible$masked@${parts[1]}';
+  final parts = email.split('@');
+  final visible = parts[0].substring(0, 2);
+  final masked = '*' * (parts[0].length - 2);
+  return '$visible$masked@${parts[1]}';
 }
 
 String formatDate(String isoDate) {
