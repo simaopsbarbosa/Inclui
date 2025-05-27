@@ -98,6 +98,80 @@ class SearchPageState extends State<SearchPage> {
     }).toList();
   }
 
+  Widget _buildEmptySearchState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search,
+            size: 80,
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Search for a place',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Type in the search bar to find accessible places',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ),
+          SizedBox(height: 50),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoResultsFound() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 80,
+            color: Colors.grey[300],
+          ),
+          SizedBox(height: 16),
+          Text(
+            'No results found',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Try searching with different keywords or check the spelling',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ),
+          SizedBox(height: 50),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -292,53 +366,63 @@ class SearchPageState extends State<SearchPage> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _placePredictions.length,
-                  itemBuilder: (context, index) {
-                    final prediction = _placePredictions[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side:
-                            BorderSide(color: Colors.grey.shade300, width: 1.0),
-                      ),
-                      margin: EdgeInsets.symmetric(horizontal: 0, vertical: 6),
-                      color: Colors.white,
-                      shadowColor: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Column(
-                          children: [
-                            ListTile(
-                              onTap: () {
-                                final placeId = prediction['placeId'];
-                                final placeName = prediction['name'];
-                                final placeAddr = prediction['address'];
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PlaceDetailPage(
-                                      placeId: placeId!,
-                                      placeName: placeName!,
-                                      placeAddr: placeAddr!,
-                                    ),
+                child: _searchController.text.isEmpty
+                    ? _buildEmptySearchState()
+                    : _placePredictions.isEmpty &&
+                            _searchController.text.isNotEmpty
+                        ? _buildNoResultsFound()
+                        : ListView.builder(
+                            itemCount: _placePredictions.length,
+                            itemBuilder: (context, index) {
+                              final prediction = _placePredictions[index];
+                              return Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                      color: Colors.grey.shade300, width: 1.0),
+                                ),
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 6),
+                                color: Colors.white,
+                                shadowColor: Colors.transparent,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        onTap: () {
+                                          final placeId = prediction['placeId'];
+                                          final placeName = prediction['name'];
+                                          final placeAddr =
+                                              prediction['address'];
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  PlaceDetailPage(
+                                                placeId: placeId!,
+                                                placeName: placeName!,
+                                                placeAddr: placeAddr!,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        leading: Icon(Icons.place,
+                                            color:
+                                                Theme.of(context).primaryColor),
+                                        title: Text(prediction['name'] ?? '',
+                                            style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.bold,
+                                            )),
+                                        subtitle:
+                                            Text(prediction['address'] ?? ''),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                              leading: Icon(Icons.place,
-                                  color: Theme.of(context).primaryColor),
-                              title: Text(prediction['name'] ?? '',
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                              subtitle: Text(prediction['address'] ?? ''),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                                ),
+                              );
+                            },
+                          ),
               ),
             ],
           ),
