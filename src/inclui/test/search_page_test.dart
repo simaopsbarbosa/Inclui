@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:inclui/screens/search_page.dart';
 
 void main() {
   group('SearchPage Filters', () {
@@ -55,5 +57,149 @@ void main() {
       expect(filteredReports.length, 1);
       expect(filteredReports[0]['name'], 'Place B');
     });
+  });
+
+  testWidgets('SearchPage shows search TextField', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Search by place name...'), findsOneWidget);
+  });
+
+  testWidgets('SearchPage shows place predictions when available', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'Lisboa');
+    await tester.pump(); 
+
+    final state = tester.state(find.byType(SearchPage)) as SearchPageState;
+    state.setPlacePredictions([
+      {'name': 'Lisboa Pessoa Hotel', 'address': 'Lisboa, Portugal', 'placeId': '1'},
+      {'name': 'Lisboa Rio Club', 'address': 'Lisboa, Portugal', 'placeId': '2'},
+      {'name': 'Lisboa Tu e Eu 2', 'address': 'Lisboa, Portugal', 'placeId': '3'},
+    ]);
+    await tester.pump();
+
+    expect(find.text('Lisboa Pessoa Hotel'), findsOneWidget); 
+    expect(find.text('Lisboa Rio Club'), findsOneWidget);
+    expect(find.text('Lisboa Tu e Eu 2'), findsOneWidget);
+  });
+
+  testWidgets('SearchPage shows place prediction card only when predictions exist', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    expect(find.byType(Card), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'Test');
+    await tester.pump();
+
+    final state = tester.state(find.byType(SearchPage)) as SearchPageState;
+    state.setPlacePredictions([
+      {'name': 'Test Place', 'address': 'Test Address', 'placeId': '1'},
+    ]);
+    await tester.pump();
+
+    expect(find.byType(Card), findsOneWidget);
+  });
+
+  testWidgets('SearchPage search field updates with user input', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'Porto');
+    await tester.pump();
+    final textField = tester.widget<TextField>(find.byType(TextField));
+    
+    expect(textField.controller?.text ?? '', 'Porto');
+  });
+
+  testWidgets('SearchPage shows close icon only when search field has text', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    expect(find.byIcon(Icons.close), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'Lisboa');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsNothing);
+  });
+
+  testWidgets('SearchPage clears search field when close icon is tapped', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'Lisboa');
+    await tester.pump();
+
+    expect(find.byIcon(Icons.close), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+    final textField = tester.widget<TextField>(find.byType(TextField));
+    
+    expect(textField.controller?.text ?? '', '');
+  });
+
+  testWidgets('SearchPage shows empty search state when field is empty', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    
+    expect(find.text('Search for a place'), findsOneWidget);
+    expect(find.byIcon(Icons.search), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('SearchPage shows no results found when field has text but no predictions', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SearchPage(),
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'abcdefghijklmonp');
+    await tester.pump();
+
+    expect(find.text('No results found'), findsOneWidget);
+    expect(find.byIcon(Icons.search_off), findsOneWidget);
   });
 }

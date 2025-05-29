@@ -67,6 +67,12 @@ class SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
+  void setPlacePredictions(List<Map<String, String>> predictions) {
+  setState(() {
+    _placePredictions = predictions;
+  });
+}
+
   Widget _buildEmptySearchState() {
     return Center(
       child: Column(
