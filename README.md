@@ -1,16 +1,10 @@
-<br>
 
-<p align="center" justify="center">
-  <img width="250px" alt="Inclui" src="docs/images/logo/inclui-w.svg"/>
-</p>
-
+# Inclui
 
 <br>
 
 https://github.com/user-attachments/assets/2cb88537-da72-4a51-9dab-b2cc751f7a17
 
-
-# Inclui
 
 <br>
 
